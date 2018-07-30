@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8"/>
+	<title>Venice EBX</title>
+	<link rel="stylesheet" type="text/css" href="style/style.css">
+	<script src="script/jquery-3.3.1.min.js"> </script>
+	<script src="script/litegraph.js"></script>
+	<script src="script/cytoscape.min.js"></script>
+    <script src="script/dagre.min.js"></script>
+    <script src="script/cytoscape-dagre.js"></script>
+	<link rel="stylesheet" href="script/themes/default/style.min.css" />
+	<link rel="stylesheet" href="script/themes/default-dark/style.min.css" />
+	<script src="script/jstree.min.js"></script>
+	<script src="script/directory.js"></script>
+	<script src="script/jquery-ui.min.js"></script>
+  	<link rel="stylesheet" href="style/jquery-ui.min.css">
+	<script src="script/script.js"></script>
+
+
+ 
+
+
+</head>
+<body>
+<div id="page">
+	<div id="NavigationWrapper">
+		<button id="toggleEvents" height="20px" style="z-index: 100; width: 100%; position: relative;" onclick="$('.canvasHolder').toggle()">Toggle event graph</button>
+		<div id="Navigation">
+
+
+		</div>
+	</div>
+	<div class="canvasHolder">
+        <canvas id='eventGraph' style='border: 1px solid; position: absolute; left: 0; top: 0; background-color: rgba(39, 40, 34, 1)'></canvas>
+	</div>
+	<div id="currentWrapper">
+        <div id="Current">
+        </div>
+    </div>
+	<div id="PropertyViewer">
+
+	</div>
+
+	<script src="script/nodes.js"></script>
+	<script src="script/NodeGraph.js"></script>
+
+</div>
+</body>
+</html>

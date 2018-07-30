@@ -1,0 +1,3 @@
+$( function() {
+	$( "#Navigation" ).resizable();
+} );

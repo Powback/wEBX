@@ -1,0 +1,259 @@
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+
+html{
+    min-height:100%;/* make sure it is at least as tall as the viewport */
+    position:relative;
+}
+body{
+    height:100%; /* force the BODY element to match the height of the HTML element */
+}
+
+#page {
+	width: 100vw;
+	height: 100vh;
+	padding: 0;
+	font-family: monospace;
+	display: flex;
+	position: relative;
+}
+#NavigationWrapper {
+    color: #fff;
+    overflow: hidden;
+    border-right: 3px solid #424242;
+    min-height: 100%;
+    min-width: 25%;
+    width: 25%;
+    margin-right: 20px;
+}
+#Navigation {
+    overflow-y: scroll;
+    height: 100vh;
+    position: fixed;
+    width: 25%;
+}
+#currentWrapper {
+    width: 60%;
+}
+
+#Current, #PropertyViewer {
+	color: #808080;
+	line-height: 16px;
+	margin-top: 10px;
+    margin-bottom: 50px;
+}
+
+ul {
+	padding-left: 30px;
+	border-left: 1px solid #464646;
+}
+
+h1 {
+	font-weight: bold;
+	position: relative;
+}
+.ref {
+	height: 14px;
+	overflow: hidden;
+	display: block;
+}
+
+.selected {
+	display: inline!important;
+}
+.array {
+	position: relative;
+}
+.array index {
+	display: inline;
+}
+#Current  li.minimized  ul index , #PropertyViewer li.minimized  ul index{
+	display: none;
+}
+.minimized {
+	height: 14px;
+	overflow: hidden;
+}
+.minimized:before {
+	content:"⯈";
+}
+
+/*
+
+	Check my style
+
+*/
+
+html {
+	background-color: rgba(39, 40, 34, 1);
+}
+
+field {
+	color: rgba(102, 217, 239, 1);
+}
+
+h1 {
+	color: #f98926;
+}
+
+value {
+	color: rgba(230, 219, 116, 1);
+	padding-left: 10px;
+}
+
+partitionreference {
+	color: #737373;
+}
+
+index {
+	position: absolute;
+	margin-left: -33px;
+	text-align: left;
+	width: 50px;
+	display: none;
+ }
+
+ul[type="first"] {
+	background-color: #232323;
+}
+
+ul[type="2nd"] {
+	padding-left: 20px;
+	padding-bottom: 2px;
+	margin-top: 2px;
+	background-color: #1b1b1b;
+}
+
+.localRef {
+	color: #4ce05f;
+}
+value.String {
+	color: rgba(230, 219, 116, 1)
+}
+
+
+value.Int32, value.UInt32, value.UInt16, value.Int16, value.Float32, value.Double, value.Single, value.Boolean, value.SByte {
+	color: #f200ff;
+}
+
+value.enum {
+	color: #ebff56;
+}
+
+partitionGuidReference {
+	color: #888;
+}
+#Current input, #PropertyViewer input{
+	background-color: transparent;
+	border: none;
+	font-family: monospace;
+	min-width:50px!important;
+	max-width:99.99%!important;
+	transition: width 0.25s;    
+	width: calc(100% - 80px);
+	text-align: left;
+}
+
+input {
+	width: 300px;
+	font-family: monospace;
+	background-color: transparent;
+	border: 0;
+	color: #505050;
+}
+.GuidReferences {
+    background-color: #232323;
+    border-left: 1px solid #464646;
+}
+
+.LinearTransform li:nth-child(2):before {
+	content: "Right:";
+	padding-right: 15px;
+	padding-left: 20px;
+}
+.LinearTransform li:nth-child(3):before {
+	content: "Up:";
+	padding-right: 37px;
+	padding-left: 20px;
+
+}
+.LinearTransform li:nth-child(4):before {
+	content: "Forward:";
+	padding-right: 1px;
+	padding-left: 20px;
+}
+.LinearTransform li:nth-child(5):before {
+	content: "Trans:";
+	padding-right: 16px;
+	padding-left: 20px;
+}
+
+input.partitionGuidReference:before {
+    content: "Partition: ";
+}
+
+value.EventSpec {
+    color: hotpink;
+}
+
+
+.canvasHolder {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    left: 0;
+    display: none;
+    top: 0;
+    z-index: 2;
+}
+div#PropertyViewer {
+    z-index: 3;
+    display: inline-table;
+}
