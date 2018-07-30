@@ -181,10 +181,10 @@ function AddSpecialNode(type, id) {
 		node.id = type + id;
 
 		if(type == "InputEvent") {
-			node.addOutput(GetHashResult(id))
+			node.addOutput(s_HashManager.GetHashResult(id))
 		}
 		if(type == "OutputEvent") {
-			node.addInput(GetHashResult(id))
+			node.addInput(s_HashManager.GetHashResult(id))
 		}
 		graph.add(node);
 
@@ -228,7 +228,7 @@ function ProcessUINode(PC)
 			AddInputMember( node, object );
 		});
 
-		AddOutputMember( node, "ActionKey - " + GetHashResult(PC["$fields"]["ActionKey"]["$value"]));
+		AddOutputMember( node, "ActionKey - " + s_HashManager.GetHashResult(PC["$fields"]["ActionKey"]["$value"]));
 
 		
 		AddNodePort(node, 
@@ -272,7 +272,7 @@ function ProcessUINode(PC)
 
 	case "InstanceOutputNode":
 		
-		AddInputMember( node, "Id - " + GetHashResult(PC["$fields"]["Id"]["$value"]));
+		AddInputMember( node, "Id - " + s_HashManager.GetHashResult(PC["$fields"]["Id"]["$value"]));
 
 		AddNodePort(node, 
 					FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"], 
@@ -293,12 +293,12 @@ function ProcessUINode(PC)
 			AddInputMember( node,  object["Name"]["$value"] + " = " + object["Value"]["$value"]);
 		});
 
-		AddInputMember( node, "VerticalAlign - " + GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
-		AddInputMember( node, "VerticalAlign - " + GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
-		AddInputMember( node, "VerticalAlign - " + GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
-		AddInputMember( node, "VerticalAlign - " + GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
-		AddInputMember( node, "VerticalAlign - " + GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
-		AddInputMember( node, "VerticalAlign - " + GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
+		AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
+		//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
+		//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
+		//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
+		//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
+		//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
 
 		Object.values(PC["$fields"]["Outputs"]["$value"]).forEach(function(object) 
 		{
@@ -442,11 +442,11 @@ function ProcessConnection(PC, type) {
 
 function AddConnections(PC, source, target, type) {
 	if (PC['Source' + type]["$value"]["Id"] != null) {
-		var sourceHash = GetHashResult(PC['Source' + type]["$value"]["Id"]["$value"]);
-		var targetHash = GetHashResult(PC['Target' + type]["$value"]["Id"]["$value"])
+		var sourceHash = s_HashManager.GetHashResult(PC['Source' + type]["$value"]["Id"]["$value"]);
+		var targetHash = s_HashManager.GetHashResult(PC['Target' + type]["$value"]["Id"]["$value"])
 	} else {
-		var sourceHash = GetHashResult(PC['Source' + type]["$value"]);
-		var targetHash = GetHashResult(PC['Target' + type]["$value"])
+		var sourceHash = s_HashManager.GetHashResult(PC['Source' + type]["$value"]);
+		var targetHash = s_HashManager.GetHashResult(PC['Target' + type]["$value"])
 	}
 	var sourceFieldSlot = source.findOutputSlot(sourceHash);
 	var targetFieldSlot = target.findInputSlot(targetHash);
@@ -488,11 +488,11 @@ function AddConnections(PC, source, target, type) {
 function AddFields(PC, source, target, type) 
 {
 	if (PC['Source' + type]["$value"]["Id"] != null) {
-		var sourceHash = GetHashResult(PC['Source' + type]["$value"]["Id"]["$value"]);
-		var targetHash = GetHashResult(PC['Target' + type]["$value"]["Id"]["$value"])
+		var sourceHash = s_HashManager.GetHashResult(PC['Source' + type]["$value"]["Id"]["$value"]);
+		var targetHash = s_HashManager.GetHashResult(PC['Target' + type]["$value"]["Id"]["$value"])
 	} else {
-		var sourceHash = GetHashResult(PC['Source' + type]["$value"]);
-		var targetHash = GetHashResult(PC['Target' + type]["$value"])
+		var sourceHash = s_HashManager.GetHashResult(PC['Source' + type]["$value"]);
+		var targetHash = s_HashManager.GetHashResult(PC['Target' + type]["$value"])
 	}
 
 
@@ -658,7 +658,7 @@ function AddSubFields(node, instance)
 				{
 					locked: true
 				});
-				var value =  "DataKey: " + GetHashResult(instance["$fields"][key]["$value"]["DataKey"]["$value"]);
+				var value =  "DataKey: " + s_HashManager.GetHashResult(instance["$fields"][key]["$value"]["DataKey"]["$value"]);
 			}
 			if (value != null && node.findInputSlot(value) == -1) 
 			{
@@ -729,22 +729,7 @@ function FindNode(instanceGuid) {
 	}
 }
 
-function FindInstance(partitionGuid, instanceGuid) 
-{
-	if( partitionGuid == null)
-		return null;
 
-	if( loadedPartitions[partitionGuid] == null)
-		LoadPartitionFromGuid(partitionGuid);
-
-	if( instanceGuid == null)
-		return null;
-
-	if (loadedPartitions[partitionGuid] != null && loadedPartitions[partitionGuid][instanceGuid] != null)
-		return loadedPartitions[partitionGuid][instanceGuid];
-	
-	return null;
-}
 
 function ApplyCoordinates() {
 	cy = window.cy = cytoscape({
