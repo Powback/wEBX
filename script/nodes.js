@@ -10,8 +10,6 @@ Dummy.prototype.onSelected = function()
 	if( this.partitionGuid == null ||
 		this.instance == null)
 		return;
-
-	
 		
 	$("#PropertyViewer").html("");
 
@@ -25,7 +23,7 @@ Dummy.prototype.onDblClick = function(e)
 		this.instance == null)
 		return;
 
-	var Data = FindInstance( this.partitionGuid, this.instance);
+	var Data = s_EbxManager.FindInstance( this.partitionGuid, this.instance);
 
 	if( Data == null )
 		return;
@@ -43,6 +41,7 @@ function InputEvent() {
 
 }
 InputEvent.title = "InputEvent";
+InputEvent.boxcolor = "#6F6"
 InputEvent.prototype.onSelected = function() {
 	console.log(this.id);
 }
@@ -52,7 +51,32 @@ function OutputEvent() {
 
 }
 OutputEvent.title = "OutputEvent";
+OutputEvent.boxcolor = "#2F2"
 OutputEvent.prototype.onSelected = function() {
 	console.log(this.id);
 }
 LiteGraph.registerNodeType("basic/OutputEvent", OutputEvent);
+
+
+function InputLink() {
+
+}
+InputLink.title = "InputLink";
+InputLink.boxcolor = "#F66"
+
+InputLink.prototype.onSelected = function() 
+{
+	console.log(this.id);
+}
+LiteGraph.registerNodeType("basic/InputLink", InputLink);
+
+function OutputLink() {
+
+}
+OutputLink.title = "OutputEvent";
+OutputLink.boxcolor = "#F22"
+OutputLink.prototype.onSelected = function() 
+{
+	console.log(this.id);
+}
+LiteGraph.registerNodeType("basic/OutputLink", OutputLink);

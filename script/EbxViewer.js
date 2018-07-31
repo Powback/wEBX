@@ -1,20 +1,37 @@
-var threeDee = [];
-threeDee['x'] = [];
-threeDee['y'] = [];
-threeDee['z'] = [];
 
 // Types that we can render directly.
 var simpleTypes = {
 	"String": true,
+	"CString": true,
+	"FileRef": true,
+
+	"Int64": true,
+	"UInt64": true,
+	"Uint64": true,
+
 	"Int32": true,
 	"UInt32": true,
-	"UInt16": true,
+	"Uint32": true,
+
 	"Int16": true,
-	"Float32": true,
-	"Double": true,
-	"Single": true,
-	"Boolean": true,
+	"UInt16": true,
+	"Uint16": true,
+	
+	"Int8": true,
+	"UInt8": true,
+	"Uint8": true,
+
 	"SByte": true,
+	
+
+	"Float32": true,
+	"Single": true,
+
+	"Float64": true,
+	"Double": true,
+
+	
+	"Boolean": true,
 	"MathOp": true
 }
 
@@ -23,37 +40,51 @@ var advancedTypes = {
 	"Vec3": true,
 	"Vec4": true,
 	"GUID": true,
+	"Guid": true,
+	"Sha1": true,
+	"FileRef": true,
 	"LinearTransform": true
 }
 
-function BuildInstance(partitionGuid, instanceGuid, parentPartition) {
+function BuildInstance(partitionGuid, instanceGuid, parentPartition) 
+{
 	var current = "";
-	if (CurrentlyLoaded[instanceGuid] != null) {
-		console.log("Using previously built instance:" + instanceGuid);
-		return CurrentlyLoaded[instanceGuid];
+	if (CurrentlyLoaded[partitionGuid+instanceGuid] != null) 
+	{
+		console.log("Using previously built instance:" + partitionGuid+instanceGuid);
+		return CurrentlyLoaded[partitionGuid+instanceGuid];
 	}
-	console.log("Building instance: " + instanceGuid);
+	console.log("Building instance: " + partitionGuid + " | " +instanceGuid);
 
+	var Instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid)
+
+	if( Instance == null )
+		return "*null*"
 
 	// add TypeName 
-	if (partitionGuid == parentPartition) {
-		current += '<h1 class="localRef">' + loadedPartitions[partitionGuid][instanceGuid]['$type'];
+	if (partitionGuid == parentPartition) 
+	{
+		current += '<h1 class="localRef">' + Instance["$type"];
 		current += '</h1><div class="GuidReferences"><label>Partition:</label><div class="guidReference">' + partitionGuid.toUpperCase() + '</div> <label>Instance: </label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div></div>';
-	} else {
-		current += '<h1 class="remoteRef">' + loadedPartitions[partitionGuid][instanceGuid]['$type'];
-		current += ' <partitionReference>' + TryGetPartitionName(partitionGuid) + '</partitionReference></h1><div class="GuidReferences"><label>Partition:</label><div class="guidReference">' + partitionGuid.toUpperCase() + '</div><label>Instance: </label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div></div>';
+	} 
+	else 
+	{
+		current += '<h1 class="remoteRef">' + Instance["$type"];
+		current += ' <partitionReference>' + s_EbxManager.GetPartitionGuidPath(partitionGuid) + '</partitionReference></h1><div class="GuidReferences"><label>Partition:</label><div class="guidReference">' + partitionGuid.toUpperCase() + '</div><label>Instance: </label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div></div>';
 	}
 	current += '<ul type="first">';
 
-	keys = Object.keys(loadedPartitions[partitionGuid][instanceGuid]['$fields']);
-	keys.sort();
+	keys = Object.keys(Instance["$fields"]);
+	//keys.sort();
 
-	keys.forEach(function(k) {
-		current += HandleField(loadedPartitions[partitionGuid][instanceGuid]["$fields"][k], k);
+	//keys.slice().reverse().forEach(function(k) 
+	keys.forEach(function(k) 
+	{
+		current += HandleField(Instance["$fields"][k], k);
 	});
 
 	current += "</ul>";
-	CurrentlyLoaded[instanceGuid] = current;
+	CurrentlyLoaded[partitionGuid+instanceGuid] = current;
 	return current;
 }
 
@@ -89,16 +120,21 @@ function HandleField(instance, field, subField = false) {
 
 function HandleSubField(instance) {
 	var content = "";
-	if (instance["$value"] != null) {
-		content += HandleField(instance["$value"], instance["$type"], true);
-	} else {
+	if (instance["$value"] != null) 
+	{
+		content += HandleField(instance["$value"], null, true); //
+	} 
+	else 
+	{
+		//if (instance["$type"] == null)
+		//	return;
+
 		content += '<ul type="2nd">';
-		if (instance["$type"] == "MathOp") {
-			console.log("yo")
-		}
-		Object.keys(instance).forEach(function(subField) {
-			content += HandleField(instance[subField], subField);
-		});
+		
+		Object.keys(instance).forEach(function(subField) 
+		{
+			content += HandleField(this[subField], subField);
+		}, instance);
 		content += "</ul>";
 	}
 	return content;
@@ -130,14 +166,24 @@ function HandleReference(instance, direct, directType) {
 		content += '<h1 class="remoteRef">';
 	}
 
-	if (loadedPartitions[partitionGuid]) {
-		//content += BuildInstance(loadedPartitions[partitionGuid][instanceGuid]);
-		content += loadedPartitions[partitionGuid][instanceGuid]["$type"] + '</h1><div class="GuidReferences"><label>Partition:</label><div class="guidReference">' + partitionGuid.toUpperCase() + '</div> <div class="GuidReferences"><label>Instance:</label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div><div class="GuidReferences"><label>Instance:</label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div></div>';
+	
+	var Instance = s_EbxManager.FindInstance( partitionGuid, instanceGuid, false );
 
-	} else {
-		if (loadedPartitions[partitionGuid] == null || loadedPartitions[partitionGuid] == "nonexistant") {
-			content += instance["$type"] + ' <partitionReference>' + TryGetPartitionName(partitionGuid) + '</partitionReference></h1><div class="GuidReferences"><label>Partition:</label><div class="guidReference">' + partitionGuid.toUpperCase() + '</div> <div class="GuidReferences"><label>Instance:</label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div></div>';
+	if (Instance != null) 
+	{
+		//content += BuildInstance(loadedPartitions[partitionGuid][instanceGuid]);
+		content += Instance["$type"] + '</h1><div class="GuidReferences"><label>Partition:</label><div class="guidReference">' + partitionGuid.toUpperCase() + '</div> <div class="GuidReferences"><label>Instance:</label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div><div class="GuidReferences"><label>Instance:</label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div></div>';
+
+	} 
+	else 
+	{
+		/*
+		if (loadedPartitions[partitionGuid] == null) 
+		{
+			*/
+			content += instance["$type"] + ' <partitionReference>' + s_EbxManager.GetPartitionGuidPath(partitionGuid) + '</partitionReference></h1><div class="GuidReferences"><label>Partition:</label><div class="guidReference">' + partitionGuid.toUpperCase() + '</div> <div class="GuidReferences"><label>Instance:</label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div></div>';
 			return content;
+		/*
 		}
 		if (loadedPartitions[partitionGuid][instanceGuid] != null) {
 			content += loadedPartitions[partitionGuid][instanceGuid]["$type"] + ' <partitionReference>' + TryGetPartitionName(partitionGuid) + '</partitionReference></h1><div class="GuidReferences"><label>Partition:</label><div class="guidReference">' + partitionGuid.toUpperCase() + '</div> <div class="GuidReferences"><label>Instance:</label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div></div>';
@@ -145,36 +191,25 @@ function HandleReference(instance, direct, directType) {
 		} else {
 			content += "<nilValue>Failed to fetch</nilValue>";
 		}
+		*/
+		
 	}
 	content += '</div>';
 	return content;
 }
 
-function TryGetPartitionName(partitionGuid) {
-	if (guidDictionary[partitionGuid] != null) {
-		return guidDictionary[partitionGuid];
-	} else {
-		return "*unknownRef* " + partitionGuid.toUpperCase();
-	}
 
-}
-
-function HandleReferencePost(partitionGuid, instanceGuid, parentPartition) {
+function HandleReferencePost(partitionGuid, instanceGuid, parentPartition) 
+{
 	content = ""
-	if (loadedPartitions[partitionGuid]) {
+
+	var Instance = s_EbxManager.FindInstance( partitionGuid, instanceGuid );
+
+	if (Instance != null) 
 		content += BuildInstance(partitionGuid, instanceGuid, parentPartition);
-	} else {
-		if (LoadPartitionFromGuid(partitionGuid)) {
-			console.log("Tried to load a partition that doesn't exist. " + partitionGuid)
-			content += "<errorvalue>Reference does not exist!</errorvalue></div>";
-			return content;
-		}
-		if (loadedPartitions[partitionGuid][instanceGuid] != null) {
-			content += BuildInstance(partitionGuid, instanceGuid, parentPartition)
-		} else {
-			content += "<nilValue>Failed to fetch</nilValue>";
-		}
-	}
+	else 
+		content += "<nilValue>Failed to fetch</nilValue>";
+
 	return content;
 }
 

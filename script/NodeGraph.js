@@ -15,20 +15,25 @@ LGraphNode.prototype.disconnectInput = function( slot )
 }
 
 
-function Init() 
+function Reset() 
 {
-	console.log("Clearing node graph")
+	console.log("Clearing node graph");
 	Destroy();
 
 	LiteGraph.NODE_TITLE_COLOR = "#fff";
-	LGraphCanvas.link_type_colors["Event"] = "#3fcdd2"
-	LGraphCanvas.link_type_colors["FieldId"] = "#dcbc42"
+	LGraphCanvas.link_type_colors["Event"] = "#3fcdd2";
+	LGraphCanvas.link_type_colors["Property"] = "#dcbc42";
+	LGraphCanvas.link_type_colors["Link"] = "#dc4242";
+
+	//LGraphCanvas.link_type_colors["Event"] = "#4bdc4b"
+	//LGraphCanvas.link_type_colors["Property"] = "#dcbc42"
+	//LGraphCanvas.link_type_colors["Link"] = "#4ea3d8"
 
 	graph.start()
 	canvas = new LGraphCanvas("#eventGraph", graph);
 	canvas.render_only_selected = false
 	canvas.background_image = null;
-	canvas.resize($(window).width() - 10, $(window).height() - 10)
+	canvas.resize($(window).width() - 10, $(window).height() - 10);
 
 }
 
@@ -67,6 +72,8 @@ function Destroy() {
 
 function LoadGraphInstance( MainInstance )
 {
+	Reset();
+
 	if( MainInstance == null)
 		return;
 
@@ -91,36 +98,43 @@ function LoadGraphInstance( MainInstance )
 }
 
 
-function OnPartitionLoaded(response, instanceguid) 
-{
-	LoadGraphInstance(FindInstance(response["$guid"], instanceguid))
-}
-
-function RegisterInstance(instance) {
-	if (instance["$fields"]["Id"] != null) {
-		knownIDs[instance["$fields"]["Id"]["$value"]] = instance["$type"];
-	}
-	if (instance["$fields"]["PropertyConnections"] != null) {
-		Interfaces[instance["$guid"]] = instance;
-	}
-}
-
 
 function HandleConnections(MainInstance) {
-	// PropertyConnections
-	if(MainInstance["$fields"]["Descriptor"]["$value"] != null) {
-		ProcessDescriptor(FindInstance(MainInstance["$fields"]["Descriptor"]["$value"]["$partitionGuid"], 
+	
+	if( MainInstance["$fields"]["Descriptor"] != null && 
+		MainInstance["$fields"]["Descriptor"]["$value"] != null) 
+	{
+		ProcessDescriptor(s_EbxManager.FindInstance(MainInstance["$fields"]["Descriptor"]["$value"]["$partitionGuid"], 
 		MainInstance["$fields"]["Descriptor"]["$value"]["$instanceGuid"]));
 	}
 
-	Object.values(MainInstance["$fields"]["PropertyConnections"]["$value"]).forEach(function(PC) {
-		ProcessConnection(PC, "FieldId")
-	});
+	if( MainInstance["$fields"]["Interface"] != null && 
+		MainInstance["$fields"]["Interface"]["$value"] != null) 
+	{
+		ProcessDescriptor(s_EbxManager.FindInstance(MainInstance["$fields"]["Interface"]["$value"]["$partitionGuid"], 
+		MainInstance["$fields"]["Interface"]["$value"]["$instanceGuid"]));
+	}
+
+
+	// LinkConnections
+	if( MainInstance["$fields"]["LinkConnections"] != null)
+		Object.values(MainInstance["$fields"]["LinkConnections"]["$value"]).forEach(function(PC) {
+			ProcessConnection(PC, "FieldId", "Link")
+		});
+
+	// PropertyConnections
+	if( MainInstance["$fields"]["PropertyConnections"] != null)
+		Object.values(MainInstance["$fields"]["PropertyConnections"]["$value"]).forEach(function(PC) {
+			ProcessConnection(PC, "FieldId", "Property")
+		});
 
 	//EventConnections
-	Object.values(MainInstance["$fields"]["EventConnections"]["$value"]).forEach(function(PC) {
-		ProcessConnection(PC, "Event")
-	});
+	if( MainInstance["$fields"]["EventConnections"] != null)
+		Object.values(MainInstance["$fields"]["EventConnections"]["$value"]).forEach(function(PC) {
+			ProcessConnection(PC, "Event", "Event")
+		});
+
+	
 	/*
 		Object.values(Interface["$fields"]["EventConnections"]["$value"]).forEach(function(PC) {
 			ProcessConnection(PC, "Event")
@@ -138,7 +152,7 @@ function HandleUIConnections(Instance) {
 
 	Object.values(Instance["$fields"]["Nodes"]["$value"]).forEach(function(Interface) 
 	{
-		ProcessUINode(FindInstance(Interface["$partitionGuid"], 
+		ProcessUINode(s_EbxManager.FindInstance(Interface["$partitionGuid"], 
 									   Interface["$instanceGuid"]));
 
 	});
@@ -147,23 +161,38 @@ function HandleUIConnections(Instance) {
 
 	// Connections
 	Object.values(Instance["$fields"]["Connections"]["$value"]).forEach(function(Interface) {
-		ProcessUIConnection(FindInstance(Interface["$partitionGuid"], 
+		ProcessUIConnection(s_EbxManager.FindInstance(Interface["$partitionGuid"], 
 									   Interface["$instanceGuid"]));
 
 	});
 }
 
-function ProcessDescriptor(descriptor) {
+function ProcessDescriptor(descriptor) 
+{
+	if( descriptor == null)
+		return;
+
 	descriptors[descriptor["$guid"]] = descriptor;
 
 	console.log(descriptor);
 
 
-	Object.values(descriptor["$fields"]["InputEvents"]["$value"]).forEach(function(inputEvent) {
-		AddSpecialNode("InputEvent", inputEvent["Id"]["$value"])
+	Object.values(descriptor["$fields"]["InputEvents"]["$value"]).forEach(function(value) 
+	{
+		AddSpecialNode("InputEvent", value["Id"]["$value"])
 	});
-	Object.values(descriptor["$fields"]["OutputEvents"]["$value"]).forEach(function(inputEvent) {
-		AddSpecialNode("OutputEvent", inputEvent["Id"]["$value"])
+	Object.values(descriptor["$fields"]["OutputEvents"]["$value"]).forEach(function(value)
+	 {
+		AddSpecialNode("OutputEvent", value["Id"]["$value"])
+	});
+
+	Object.values(descriptor["$fields"]["InputLinks"]["$value"]).forEach(function(value) 
+	{
+		AddSpecialNode("InputLink", value["Id"]["$value"])
+	});
+	Object.values(descriptor["$fields"]["OutputLinks"]["$value"]).forEach(function(value) 
+	{
+		AddSpecialNode("OutputLink", value["Id"]["$value"])
 	});
 }
 
@@ -180,16 +209,23 @@ function AddSpecialNode(type, id) {
 
 		node.id = type + id;
 
-		if(type == "InputEvent") {
+		if( type == "InputEvent" || 
+			type == "InputLink") 
+		{
 			node.addOutput(s_HashManager.GetHashResult(id))
 		}
-		if(type == "OutputEvent") {
+		if(type == "OutputEvent" ||
+			type == "OutputLink") 
+		{
 			node.addInput(s_HashManager.GetHashResult(id))
 		}
+		
 		graph.add(node);
 
-		chartNode[chartNode.length] = {
-			data: {
+		chartNode[chartNode.length] = 
+		{
+			data: 
+			{
 				id: type + id
 			}
 		};
@@ -202,6 +238,9 @@ function AddSpecialNode(type, id) {
 
 function ProcessUINode(PC) 
 {
+	if( PC == null )
+		return;
+
 	var node = AddNode(PC);
 
 	if( node == null ) 
@@ -232,14 +271,14 @@ function ProcessUINode(PC)
 
 		
 		AddNodePort(node, 
-					FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"], 
-								 PC["$fields"]["In"]["$value"]["$instanceGuid"]),
+					s_EbxManager.FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"], 
+											  PC["$fields"]["In"]["$value"]["$instanceGuid"]),
 					false);
 
 
 		AddNodePort(node, 
-					FindInstance(PC["$fields"]["Out"]["$value"]["$partitionGuid"], 
-								 PC["$fields"]["Out"]["$value"]["$instanceGuid"]),
+					s_EbxManager.FindInstance(PC["$fields"]["Out"]["$value"]["$partitionGuid"], 
+								              PC["$fields"]["Out"]["$value"]["$instanceGuid"]),
 					true);
 		
 		break;
@@ -248,15 +287,15 @@ function ProcessUINode(PC)
 		Object.values(PC["$fields"]["Outputs"]["$value"]).forEach(function(object) 
 		{
 			AddNodePort(node, 
-						FindInstance(object["$partitionGuid"], 
-									 object["$instanceGuid"]),
+						s_EbxManager.FindInstance(object["$partitionGuid"], 
+									 			  object["$instanceGuid"]),
 						true);
 		});
 
 		
 		AddNodePort(node, 
-					FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"], 
-								 PC["$fields"]["In"]["$value"]["$instanceGuid"]),
+					s_EbxManager.FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"], 
+								 			  PC["$fields"]["In"]["$value"]["$instanceGuid"]),
 					false);
 
 
@@ -265,8 +304,8 @@ function ProcessUINode(PC)
 	case "InstanceInputNode":
 
 		AddNodePort(node, 
-					FindInstance(PC["$fields"]["Out"]["$value"]["$partitionGuid"], 
-								 PC["$fields"]["Out"]["$value"]["$instanceGuid"]),
+					s_EbxManager.FindInstance(PC["$fields"]["Out"]["$value"]["$partitionGuid"], 
+											  PC["$fields"]["Out"]["$value"]["$instanceGuid"]),
 					true);
 		break;
 
@@ -275,8 +314,8 @@ function ProcessUINode(PC)
 		AddInputMember( node, "Id - " + s_HashManager.GetHashResult(PC["$fields"]["Id"]["$value"]));
 
 		AddNodePort(node, 
-					FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"], 
-								 PC["$fields"]["In"]["$value"]["$instanceGuid"]),
+					s_EbxManager.FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"], 
+											  PC["$fields"]["In"]["$value"]["$instanceGuid"]),
 					false);
 		break;
 
@@ -303,15 +342,15 @@ function ProcessUINode(PC)
 		Object.values(PC["$fields"]["Outputs"]["$value"]).forEach(function(object) 
 		{
 			AddNodePort(node, 
-						FindInstance(object["$partitionGuid"], 
-									object["$instanceGuid"]),
+						s_EbxManager.FindInstance(object["$partitionGuid"], 
+												  object["$instanceGuid"]),
 						true);
 		});
 
 		Object.values(PC["$fields"]["Inputs"]["$value"]).forEach(function(object) 
 		{
 			AddNodePort(node, 
-						FindInstance(object["$partitionGuid"], 
+						s_EbxManager.FindInstance(object["$partitionGuid"], 
 									object["$instanceGuid"]),
 						false);
 		});
@@ -344,34 +383,27 @@ function AddOutputMember(node, value)
 
 function ProcessUIConnection(PC) 
 {
+	if( PC == null )
+		return;
+
 	var sourcePartitionGuid = PC["$fields"]["SourceNode"]["$value"]["$partitionGuid"];
 	var sourceInstanceGuid = PC["$fields"]["SourceNode"]["$value"]["$instanceGuid"];
 
 	var targetPartitionGuid = PC["$fields"]["TargetNode"]["$value"]["$partitionGuid"];
 	var targetInstanceGuid = PC["$fields"]["TargetNode"]["$value"]["$instanceGuid"];
 
-	{
-		var sourcePortPartitionGuid = PC["$fields"]["SourcePort"]["$value"]["$partitionGuid"];
-
-		var targetPortPartitionGuid = PC["$fields"]["TargetPort"]["$value"]["$partitionGuid"];
-
-		if (loadedPartitions[sourcePortPartitionGuid] == null)
-			LoadPartitionFromGuid(sourcePortPartitionGuid);
-
-		if (loadedPartitions[targetPortPartitionGuid] == null) 
-			LoadPartitionFromGuid(targetPortPartitionGuid);
-
-	}
-	if (loadedPartitions[sourcePartitionGuid] == null) 
-		LoadPartitionFromGuid(sourcePartitionGuid);
-
-	if (loadedPartitions[targetPartitionGuid] == null) 
-		LoadPartitionFromGuid(targetPartitionGuid);
 
 
 	var sourceInstance = FindInstance(sourcePartitionGuid, sourceInstanceGuid);
 	var targetInstance = FindInstance(targetPartitionGuid, targetInstanceGuid);
 
+
+	if( sourceInstance == null || 
+		targetInstance == null ) 
+	{
+		console.log("ddint load node instances: " + sourceInstance + " | " + targetInstance);
+		return;
+	}
 
 	
 	var sourceNode = AddNode(sourceInstance, sourcePartitionGuid);
@@ -380,55 +412,83 @@ function ProcessUIConnection(PC)
 	if( sourceNode == null || 
 		targetNode == null ) 
 	{
-		console.log("Something is wrong");
+		console.log("Something is wrong2");
 		return;
 	}
 
-	var sourcePort = FindInstance(PC["$fields"]["SourcePort"]["$value"]["$partitionGuid"], 
-								  PC["$fields"]["SourcePort"]["$value"]["$instanceGuid"]);
+	var sourcePort = s_EbxManager.FindInstance(PC["$fields"]["SourcePort"]["$value"]["$partitionGuid"], 
+											   PC["$fields"]["SourcePort"]["$value"]["$instanceGuid"]);
 
 
-	var targetPort = FindInstance(PC["$fields"]["TargetPort"]["$value"]["$partitionGuid"], 
-								  PC["$fields"]["TargetPort"]["$value"]["$instanceGuid"]);
+	var targetPort = s_EbxManager.FindInstance(PC["$fields"]["TargetPort"]["$value"]["$partitionGuid"], 
+								  			   PC["$fields"]["TargetPort"]["$value"]["$instanceGuid"]);
+
+	if( sourcePort == null || 
+		targetPort == null ) 
+	{
+		console.log("Something is wrong3");
+		return;
+	}
 
 	AddNodePort( sourceNode, sourcePort, true );
 	AddNodePort( targetNode, targetPort, false );
 	AddUIConnections(PC, sourceNode, targetNode, sourcePort, targetPort);
 }
 
-function ProcessConnection(PC, type) {
+function ProcessConnection(PC, variableName, type) 
+{
 	var sourcePartitionGuid = PC["Source"]["$value"]["$partitionGuid"]
 	var sourceInstanceGuid = PC["Source"]["$value"]["$instanceGuid"]
 
 	var targetPartitionGuid = PC["Target"]["$value"]["$partitionGuid"]
 	var targetInstanceGuid = PC["Target"]["$value"]["$instanceGuid"]
 
-	if (loadedPartitions[sourcePartitionGuid] == null) {
-		LoadPartitionFromGuid(sourcePartitionGuid);
+
+	var sourceInstance = s_EbxManager.FindInstance(sourcePartitionGuid, sourceInstanceGuid);
+	var targetInstance = s_EbxManager.FindInstance(targetPartitionGuid, targetInstanceGuid);
+
+	if( sourceInstance == null || 
+		targetInstance == null ) 
+	{
+		console.log("ddint load node instances: " + sourceInstance + " | " + targetInstance);
+		return;
 	}
-	if (loadedPartitions[targetPartitionGuid] == null) {
-		LoadPartitionFromGuid(targetPartitionGuid);
-	}
-	var sourceInstance = FindInstance(sourcePartitionGuid, sourceInstanceGuid);
-	var targetInstance = FindInstance(targetPartitionGuid, targetInstanceGuid);
 
 	var targetNode = AddNode(targetInstance, targetPartitionGuid);
 	var sourceNode = AddNode(sourceInstance, sourcePartitionGuid);
 
-	if(type != "FieldId") 
+
+
+
+	if(type == "Event") 
 	{
 		if( descriptors[targetInstanceGuid] != null && 
-			graph.getNodeById("OutputEvent" + PC['Target' + type]["$value"]["Id"]["$value"]) != null) 
+			graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]) != null) 
 		{
-			targetNode = graph.getNodeById("OutputEvent" + PC['Target' + type]["$value"]["Id"]["$value"]);
+			targetNode = graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]);
 		}
 
 		if( descriptors[sourceInstanceGuid] != null && 
-			graph.getNodeById("InputEvent" + PC['Source' + type]["$value"]["Id"]["$value"]) != null) 
+			graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]) != null) 
 		{
-			sourceNode = graph.getNodeById("InputEvent" + PC['Source' + type]["$value"]["Id"]["$value"]);
+			sourceNode = graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]);
 		}	
 	}	
+	else if(type == "Link")
+	{
+		if( descriptors[targetInstanceGuid] != null && 
+			graph.getNodeById("OutputLink" + PC["Target" + variableName]["$value"]) != null)  // ( PC["TargetFieldId"]["$value"] < 0x1505 ? "0" : PC["TargetFieldId"]["$value"] )
+		{
+			targetNode = graph.getNodeById("OutputLink" + PC["TargetFieldId"]["$value"]);
+		}
+
+		if( descriptors[sourceInstanceGuid] != null && 
+			
+			graph.getNodeById("InputLink" + PC["SourceFieldId"]["$value"]) != null) 
+		{
+			sourceNode = graph.getNodeById("InputLink" + PC["SourceFieldId"]["$value"]);
+		}	
+	}
 	
 	if( sourceNode == null || 
 		targetNode == null) 
@@ -436,47 +496,67 @@ function ProcessConnection(PC, type) {
 		console.log("Something is wrong");
 	}
 
-	AddFields(PC, sourceNode, targetNode, type)
-	AddConnections(PC, sourceNode, targetNode, type);
+	AddFields(PC, sourceNode, targetNode, variableName, type);
+	AddConnections(PC, sourceNode, targetNode, variableName, type);
 }
 
-function AddConnections(PC, source, target, type) {
-	if (PC['Source' + type]["$value"]["Id"] != null) {
-		var sourceHash = s_HashManager.GetHashResult(PC['Source' + type]["$value"]["Id"]["$value"]);
-		var targetHash = s_HashManager.GetHashResult(PC['Target' + type]["$value"]["Id"]["$value"])
-	} else {
-		var sourceHash = s_HashManager.GetHashResult(PC['Source' + type]["$value"]);
-		var targetHash = s_HashManager.GetHashResult(PC['Target' + type]["$value"])
+function AddConnections(PC, source, target, variableName, type ) 
+{
+	if (PC['Source' + variableName]["$value"]["Id"] != null) 
+	{
+		var sourceHash = s_HashManager.GetHashResult(PC['Source' + variableName]["$value"]["Id"]["$value"]);
+		var targetHash = s_HashManager.GetHashResult(PC['Target' + variableName]["$value"]["Id"]["$value"])
+	} 
+	else 
+	{
+		var sourceHash = s_HashManager.GetHashResult(PC['Source' + variableName]["$value"]);
+		var targetHash = s_HashManager.GetHashResult(PC['Target' + variableName]["$value"])
 	}
-	var sourceFieldSlot = source.findOutputSlot(sourceHash);
-	var targetFieldSlot = target.findInputSlot(targetHash);
+
+	var SourceHashString = s_HashManager.GetHashResult(sourceHash);
+	var TargetHashString = s_HashManager.GetHashResult(targetHash);
+
+	
+
+	var sourceFieldSlot = source.findOutputSlot(SourceHashString);
+	var targetFieldSlot = target.findInputSlot(TargetHashString);
+	
 
 	var mass = 1;
-	if (source.inputs != null) {
+	if (source.inputs != null) 
+	{
 		mass += source.inputs.length
 	}
-	if (source.outputs != null) {
+	if (source.outputs != null) 
+	{
 		mass += source.outputs.length
 	}
-	if(target.isInputConnected(targetFieldSlot)) {
-		console.log("Tried to add multiple inputs." + targetHash)
+	
+	
+	if(target.isInputConnected(targetFieldSlot)) 
+	{
+		console.log("Tried to add multiple inputs." + TargetHashString)
 		var offset = 0;
 
-		while(target.findInputSlot(targetHash) != -1) {
-			targetHash = offset + targetHash;
+		while(target.findInputSlot(TargetHashString + " - " + offset) != -1) 
+		{
 			offset++;
 		}
-		target.addInput(targetHash, type, {
+
+		target.addInput(targetHash + " - " + offset, type, 
+		{
 			locked: true
 		});
 		targetFieldSlot = target.findInputSlot(targetHash);
-
-
 	}
+	
+	
 	source.connect(sourceFieldSlot, target, targetFieldSlot);
 
-	edges[edges.length] = {
-		data: {
+	edges[edges.length] = 
+	{
+		data: 
+		{
 			source: source.id,
 			target: target.id
 		}
@@ -485,31 +565,52 @@ function AddConnections(PC, source, target, type) {
 
 }
 
-function AddFields(PC, source, target, type) 
+function AddFields(PC, source, target, variableName, type) 
 {
-	if (PC['Source' + type]["$value"]["Id"] != null) {
-		var sourceHash = s_HashManager.GetHashResult(PC['Source' + type]["$value"]["Id"]["$value"]);
-		var targetHash = s_HashManager.GetHashResult(PC['Target' + type]["$value"]["Id"]["$value"])
-	} else {
-		var sourceHash = s_HashManager.GetHashResult(PC['Source' + type]["$value"]);
-		var targetHash = s_HashManager.GetHashResult(PC['Target' + type]["$value"])
+
+	if (PC['Source' + variableName]["$value"]["Id"] != null) 
+	{
+		var sourceHash = s_HashManager.GetHashResult(PC['Source' + variableName]["$value"]["Id"]["$value"]);
+		var targetHash = s_HashManager.GetHashResult(PC['Target' + variableName]["$value"]["Id"]["$value"])
+	} 
+	else 
+	{
+		var sourceHash = s_HashManager.GetHashResult(PC['Source' + variableName]["$value"]);
+		var targetHash = s_HashManager.GetHashResult(PC['Target' + variableName]["$value"])
 	}
 
+	var SourceHashString = s_HashManager.GetHashResult(sourceHash);
+	var TargetHashString = s_HashManager.GetHashResult(targetHash);
 
 
-	var sourceInstance = FindInstance(PC["Source"]["$value"]["$partitionGuid"], PC["Source"]["$value"]["$instanceGuid"]);
-	var targetInstance = FindInstance(PC["Target"]["$value"]["$partitionGuid"], PC["Target"]["$value"]["$instanceGuid"]);
+
+	var sourceInstance = s_EbxManager.FindInstance(PC["Source"]["$value"]["$partitionGuid"], PC["Source"]["$value"]["$instanceGuid"]);
+	var targetInstance = s_EbxManager.FindInstance(PC["Target"]["$value"]["$partitionGuid"], PC["Target"]["$value"]["$instanceGuid"]);
+
+	if( sourceInstance == null ||
+		targetInstance == null )
+	{
+		console.log("Addfields something went wrong!");
+		return;
+	}
+	
+
 
 	AddSubFields(source, sourceInstance);
 	AddSubFields(target, targetInstance);
 
-	if (source.findOutputSlot(sourceHash) == -1) {
-		source.addOutput(sourceHash, type, {
+
+	
+
+	if (source.findOutputSlot(SourceHashString) == -1) {
+		source.addOutput(SourceHashString, type, 
+		{
 			locked: true
 		});
 	}
-	if (target.findInputSlot(targetHash) == -1) {
-		target.addInput(targetHash, type, {
+	if (target.findInputSlot(TargetHashString) == -1) {
+		target.addInput(TargetHashString, type,
+		{
 			locked: true
 		});
 	}
@@ -523,6 +624,9 @@ function AddFields(PC, source, target, type)
 
 function AddNodePort(node, port, IsOutput) 
 {
+	if( port == null)
+		return;
+
 	if ((IsOutput ? node.findOutputSlot(port["$fields"]["Name"]["$value"]) : node.findInputSlot(port["$fields"]["Name"]["$value"])) == -1) 
 	{
 		if( IsOutput == true)
@@ -619,7 +723,7 @@ function AddSubFields(node, instance)
 			{
 				if (instance["$fields"][key]["$value"] != null) 
 				{
-					var value = key + ": " + TryGetPartitionName(instance["$fields"][key]["$value"]["$partitionGuid"]);
+					var value = key + ": " + s_EbxManager.GetPartitionGuidPath(instance["$fields"][key]["$value"]["$partitionGuid"]);
 				} 
 				else
 				{
@@ -653,7 +757,7 @@ function AddSubFields(node, instance)
 			}
 			if (key == "DataSource" ) 
 			{
-				var value = key + ": " + TryGetPartitionName(instance["$fields"][key]["$value"]["DataCategory"]["$value"]["$partitionGuid"]);
+				var value = key + ": " + s_EbxManager.GetPartitionGuidPath(instance["$fields"][key]["$value"]["DataCategory"]["$value"]["$partitionGuid"]);
 				node.addInput(value, LiteGraph.EVENT, 
 				{
 					locked: true
@@ -686,6 +790,7 @@ function AddNode(instance, partitionGuid)
 		var type = instance["$type"];
 
 		var node = CreateNode(type);
+
 		nodes[instance["$guid"]] = node;
 
 		node.partitionGuid = partitionGuid;
@@ -704,16 +809,25 @@ function AddNode(instance, partitionGuid)
 	return graph.getNodeById(instance["$guid"]);
 }
 
-function CreateNode(type) {
-	switch(type) {
-		case "InputEvent":
-		    var node = LiteGraph.createNode("basic/InputEvent");
-		case "OutputEvent":
-		    var node = LiteGraph.createNode("basic/OutputEvent");
-		default:
-			var node = LiteGraph.createNode("basic/dummy");
-			node.title = type;
-		}
+function CreateNode(type) 
+{
+	switch(type) 
+	{
+	case "InputEvent":
+		var node = LiteGraph.createNode("basic/InputEvent");
+	case "OutputEvent":
+		var node = LiteGraph.createNode("basic/OutputEvent");
+		
+	case "InputLink":
+		var node = LiteGraph.createNode("basic/InputLink");
+	case "OutputLink":
+		var node = LiteGraph.createNode("basic/OutputLink");
+	default:
+		var node = LiteGraph.createNode("basic/dummy");
+		node.title = type;
+			
+	}
+	node.mode = LiteGraph.ALWAYS;
 	return node;
 	//	}
 }
@@ -754,8 +868,9 @@ function ApplyCoordinates() {
 	});
 }
 
-Init();
+//Init();
 
 $(window).resize(function() {
-	canvas.resize($('.canvasHolder').width(), $('.canvasHolder').height())
+	if( canvas != null ) 
+		canvas.resize($('.canvasHolder').width(), $('.canvasHolder').height())
 });

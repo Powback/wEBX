@@ -1,87 +1,152 @@
 
-function FindInstance(partitionGuid, instanceGuid) 
+class EbxManager
 {
-	if( partitionGuid == null)
-		return null;
+    constructor()
+    {
+        this.m_GuidDictionary = {};
+        this.m_LoadedPartitions = {};
 
-	if( loadedPartitions[partitionGuid] == null)
-		LoadPartitionFromGuid(partitionGuid);
+        this.m_Game = "Warsaw";//"Venice"
 
-	if( instanceGuid == null)
-		return null;
 
-	if (loadedPartitions[partitionGuid] != null && loadedPartitions[partitionGuid][instanceGuid] != null)
-		return loadedPartitions[partitionGuid][instanceGuid];
-	
-	return null;
+        this.m_PartitionLoadedCallback = [];
+        this.m_GuidDictionaryLoadedCallback = [];
+    }
+
+    SetGame( name )
+    {
+        this.m_Game = name
+    }
+    
+
+    AddParitionLoadedCallback( callback )
+    {
+        this.m_PartitionLoadedCallback.push( callback );
+    }
+
+    AddGuidDictionaryLoadedCallback( callback )
+    {
+        this.m_GuidDictionaryLoadedCallback.push( callback );
+    }
+
+
+    GetPartitionGuidPath( partitionGuid )
+    {
+        if( this.m_GuidDictionary[partitionGuid] != null)
+            return this.m_GuidDictionary[partitionGuid];
+
+        return "*unknownRef* " + partitionGuid.toUpperCase();
+    }
+
+    AddPartitionGuidPath( partitionGuid, path )
+    {
+        if( this.m_GuidDictionary[partitionGuid] != null )
+            return;
+
+        this.m_GuidDictionary[partitionGuid] = path;
+    }
+
+
+    FindInstance(partitionGuid, instanceGuid, shouldLoad = true) 
+    {
+        if( partitionGuid == null)
+            return null;
+
+        if( this.m_LoadedPartitions[partitionGuid] == null && shouldLoad == true )
+            this.LoadEbxFromGuid(partitionGuid);
+
+        if( instanceGuid == null)
+            return null;
+
+        if (this.m_LoadedPartitions[partitionGuid] == null ||
+            this.m_LoadedPartitions[partitionGuid][instanceGuid] == null)
+            return null;
+
+
+        return this.m_LoadedPartitions[partitionGuid][instanceGuid];
+    }
+
+    
+    LoadEbxFromGuid(guid, loadCallback = null) 
+    {
+        if (!this.m_GuidDictionary[guid]) 
+        {
+            console.error("Tried to load a partition that does not exsits: " + guid)
+            return false;
+        }
+        
+        return this.LoadEbxFromPath( this.m_GuidDictionary[guid] + ".json", loadCallback )
+    }
+
+
+    LoadEbxFromPath(path, loadCallback = null) 
+    {
+        console.log("Loading partition " + this.m_Game  + "/" + + path)
+        $.ajax({
+            context: this,
+            url: this.m_Game + "/" + path,
+            dataType: 'json',
+            async: false,
+
+            success: function(response) 
+            {
+
+                
+                this.m_LoadedPartitions[response['$guid']] = {};
+
+                response['$instances'].forEach(function(element) 
+                {
+                    this.m_LoadedPartitions[response['$guid']][element['$guid']] = element;
+                }, this);
+
+                this.AddPartitionGuidPath( response['$guid'], path );
+
+                this.m_PartitionLoadedCallback.forEach( function(callback)
+                {
+                    callback( this );
+                }, response);
+
+                if (loadCallback != null)
+                    loadCallback( response );
+            },
+            error: function(xhr, status, error) 
+            {
+                var err = JSON.parse( xhr.responseText );
+                console.log("Failed to load partition: "  + this.m_Game + "/" + path)
+
+                console.log( err )
+            },
+        });
+    }
+
+
+    LoadGuidTable()
+    {
+        console.log( "Loading guidTable \"" + this.m_Game  + "/guidDictionary.json" +"\"");
+        $.ajax({
+            context: this,
+            url: this.m_Game  + "/guidDictionary.json",
+            dataType: 'json',
+            success: function(response) 
+            {
+                this.m_GuidDictionary = response;
+
+                this.m_GuidDictionaryLoadedCallback.forEach( function(callback)
+                {
+                    callback( this.m_GuidDictionary );
+                }, this);
+            },
+            error: function(xhr, status, error) 
+            {
+                var err = JSON.parse(xhr.responseText);
+
+                console.log("Failed to load guidDictionary.json: " + this.m_Game  + "/guidDictionary.json")
+                console.log( err )
+            }
+        });
+
+    }
 }
 
 
-function LoadPartitionFromGuid(guid, instanceGuid=null) 
-{
-	console.log("loading partition " + basePath + guidDictionary[guid])
-	if (!guidDictionary[guid]) 
-	{
-		console.error("Tried to load a partition that does not exsits: " + guid)
-		loadedPartitions[guid] == "nonexistant";
-		return true;
-	}
-	$.ajax({
-		url: basePath + guidDictionary[guid] + ".json",
-		dataType: 'json',
-		async: false,
-		success: function(response) {
-			loadedPartitions[response['$guid']] = [];
-			response['$instances'].forEach(function(element) {
-				loadedPartitions[response['$guid']][element['$guid']] = element;
-				RegisterInstance(element);
-
-			});
-
-			if (instanceGuid != null)
-				LoadInstance(guid, instanceGuid);
-
-			console.log("Partition loaded");
-			return false;
-		},
-		error: function() {
-			return true;
-		},
-	});
-
-}
-
-
-function LoadPartitionFromPath(path, display = false) 
-{
-	$.ajax({
-		url: basePath + path,
-		dataType: 'json',
-		async: false,
-		success: function(response) {
-			loadedPartitions[response['$guid']] = [];
-			response['$instances'].forEach(function(element) {
-				loadedPartitions[response['$guid']][element['$guid']] = element;
-				RegisterInstance(element);
-			});
-
-			if (display) {
-				CurrentlyLoaded = [];
-				LoadInstance(response["$guid"], response["$primaryInstance"])
-				//DisplayPartition(response, partition["$primaryInstance"]);
-				return false;
-			}
-
-		},
-		error: function() {
-			console.log("Failed to load partition: " + path)
-			return true;
-
-		},
-	});
-
-
-	
-
-
-}
+var s_EbxManager = new EbxManager();

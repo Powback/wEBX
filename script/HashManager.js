@@ -4,10 +4,12 @@ class HashManager
 
 	constructor()
 	{
-		this.m_EventHashes = null;
-		this.m_AssetHashes = null;
-		this.m_InterfaceIDs = null;
+		this.m_EventHashes = {};
+		this.m_AssetHashes = {};
+		this.m_InterfaceIDs = {};
 
+
+		this.m_KnownIDs = {}
 		this.m_UnknownHashes = {}
     }
     
@@ -16,7 +18,8 @@ class HashManager
     LoadHashes()
     {
         $.ajax({
-			url: "eventHashes.json",
+			context: this,
+			url: "Hash/eventHashes.json",
 			dataType: 'json',
             success: function(response) 
             {
@@ -25,7 +28,8 @@ class HashManager
 			}
 		});
 		$.ajax({
-			url: "assetHashes.json",
+			context: this,
+			url: "Hash/assetHashes.json",
 			dataType: 'json',
             success: function(response) 
             {
@@ -34,7 +38,8 @@ class HashManager
 			}
 		});
 		$.ajax({
-			url: "InterfaceIDs.json",
+			context: this,
+			url: "Hash/InterfaceIDs.json",
 			dataType: 'json',
             success: function(response) 
             {
@@ -46,12 +51,15 @@ class HashManager
 
 	GetHashResult(hash) 
 	{
-		/*
-		if (knownIDs[hash] != null) 
+		if (hash == 0)
+			return ""
+
+
+		if (this.m_KnownIDs[hash] != null) 
 		{
-			return "[Instance] " + knownIDs[hash];
+			return "[Instance] " + this.m_KnownIDs[hash];
 		}
-		*/
+		
 		if (this.m_EventHashes[hash] != null) 
 		{
 			return "[Event] " + this.m_EventHashes[hash];
@@ -68,9 +76,16 @@ class HashManager
 		this.m_UnknownHashes[hash] = true;
 		return hash;
 	}
+
+
+	RegisterInstance( instance ) 
+    {
+		if (instance["$fields"]["Id"] != null) 
+			this.m_KnownIDs[instance["$fields"]["Id"]["$value"]] = instance["$type"];
+			
+        if (instance["$fields"]["PropertyConnections"] != null) 
+            this.m_KnownIDs[instance["$guid"]] = instance;
+    }
 }
 
-const s_HashManager = new HashManager();
-Object.freeze(s_HashManager);
-
-//export default s_HashManager;
+var s_HashManager = new HashManager();

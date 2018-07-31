@@ -15,37 +15,14 @@ var loadedInstances = [];
 // Anti recursive measurements
 var CurrentlyLoaded = [];
 
-// Types that we can render directly.
-var simpleTypes = {
-	"String": true,
-	"Int32": true,
-	"UInt32": true,
-	"UInt16": true,
-	"Int16": true,
-	"Float32": true,
-	"Double": true,
-	"Single": true,
-	"Boolean": true,
-	"SByte": true,
-	"MathOp": true
-}
-
-var advancedTypes = {
-	"Vec2": true,
-	"Vec3": true,
-	"Vec4": true,
-	"GUID": true,
-	"LinearTransform": true
-}
-
-
 
 function DisplayPartition(partition, instanceGuid) {
 	
 	$("#Current").html("");
 	var container = document.createElement('ul');
 	currentPartition = partition["$guid"];
-	partition['$instances'].forEach(function(element) {
+	partition['$instances'].forEach(function(element) 
+	{
 		if (element["$guid"] == instanceGuid) {
 			$('#Current').append(BuildInstance(partition['$guid'], partition['$primaryInstance']));
 		} else {
@@ -59,8 +36,8 @@ function DisplayPartition(partition, instanceGuid) {
 
 function LoadInstance(partitionGuid, instanceGuid)
 {
-	var Blueprint = FindInstance( partitionGuid, 
-								  instanceGuid );
+	var Blueprint = s_EbxManager.FindInstance( partitionGuid, 
+								               instanceGuid );
 
 	
 	if( Blueprint == null )
@@ -69,48 +46,28 @@ function LoadInstance(partitionGuid, instanceGuid)
 
 	$("#Current").html("");
 	$('#Current').append( BuildInstance( partitionGuid, 
-										instanceGuid ) );
+										 instanceGuid ) );
 
-	Init();
 	LoadGraphInstance(Blueprint);
 }
 
 
-
-
-
-
-
-
-window.onload = function() 
+function LoadEbxFromHash()
 {
-	LoadDirectory();
+	LoadCallback = function( instance )
+	{
+		LoadInstance(instance["$guid"], instance["$primaryInstance"])
+	};
 
-	s_HashManager.LoadHashes( );
-	
-	$.ajax({
-		url: "guidDictionary.json",
-		dataType: 'json',
-		success: function(response) {
-			console.log("Received guidDictionary");
-			guidDictionary = response;
-			OnLoad();
-		}
-	});
-}
+	var hash = location.hash.replace( /^#/, '' );
 
-function OnLoad() {
-	Init();
-
-	console.log( "Loc: " + window.location.href );
-
-	var hash = location.hash.replace(/^#/, '');
-
-	var params = hash.split('&');
+	var params = hash.split( '&' );
 
 	if( params.length == 2 )
 	{
-		LoadPartitionFromGuid(params[0].toLowerCase(), params[1].toLowerCase())
+		s_EbxManager.LoadEbxFromGuid( params[0].toLowerCase( ),
+									  params[1].toLowerCase( ),
+									  LoadCallback );
 		return;
 	}
 
@@ -118,15 +75,51 @@ function OnLoad() {
 	currentPath = hash;
 
 	// If hash contains json, get the path and load the selected partition.
-	if (hash.indexOf(".ebx") != -1) 
+	//if (hash.indexOf(".ebx") != -1) 
 	{
-		LoadPartitionFromPath(hash.replace(".ebx", ".json"), true);
+		s_EbxManager.LoadEbxFromPath( hash.replace(".ebx", "").replace(".json", "") + ".json", 
+									  LoadCallback );
 	}
-};
+}
+
+
+function Load() 
+{
+	//LoadDirectory();
+
+	s_HashManager.LoadHashes( );
+	
+	s_EbxManager.AddParitionLoadedCallback( function( response ) 
+	{
+		if( response['$instances'] == null )
+			return;
+
+		response['$instances'].forEach(function(element) 
+		{
+			s_HashManager.RegisterInstance( element );
+		}, this);
+	});
+
+	//s_EbxManager.AddGuidDictionaryLoadedCallback( OnGuidTableLoad )
+
+	s_EbxManager.LoadGuidTable( );
+
+	LoadEbxFromHash( );
+}
+
+
+
+
+
+
+window.onload = Load;
 
 // hash changed, either load 
-$(window).on('hashchange', function(e) {
-	OnLoad();
+$(window).on('hashchange', function(e) 
+{
+	LoadEbxFromHash( )
+	//Load();
+	//OnLoad();
 });
 
 
