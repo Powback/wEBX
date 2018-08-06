@@ -394,8 +394,8 @@ function ProcessUIConnection(PC)
 
 
 
-	var sourceInstance = FindInstance(sourcePartitionGuid, sourceInstanceGuid);
-	var targetInstance = FindInstance(targetPartitionGuid, targetInstanceGuid);
+	var sourceInstance = s_EbxManager.FindInstance(sourcePartitionGuid, sourceInstanceGuid);
+	var targetInstance = s_EbxManager.FindInstance(targetPartitionGuid, targetInstanceGuid);
 
 
 	if( sourceInstance == null || 
