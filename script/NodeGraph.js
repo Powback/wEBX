@@ -547,7 +547,7 @@ function AddConnections(PC, source, target, variableName, type )
 		{
 			locked: true
 		});
-		targetFieldSlot = target.findInputSlot(targetHash);
+		targetFieldSlot = target.findInputSlot(targetHash + " - " + offset);
 	}
 	
 	
