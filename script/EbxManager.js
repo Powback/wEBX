@@ -6,7 +6,7 @@ class EbxManager
         this.m_GuidDictionary = {};
         this.m_LoadedPartitions = {};
 
-        this.m_Game = "Warsaw";//"Venice"
+        this.m_Game = "Venice";//"Venice" "Warsaw" "Tunguska" 
 
 
         this.m_PartitionLoadedCallback = [];
@@ -47,7 +47,7 @@ class EbxManager
     }
 
 
-    FindInstance(partitionGuid, instanceGuid, shouldLoad = true) 
+    FindInstance( partitionGuid, instanceGuid, shouldLoad = true ) 
     {
         if( partitionGuid == null)
             return null;
@@ -67,26 +67,32 @@ class EbxManager
     }
 
     
-    LoadEbxFromGuid(guid, loadCallback = null) 
+    LoadEbxFromGuid( partitionGuid, loadCallback = null, instanceGuid = null, ) 
     {
-        if (!this.m_GuidDictionary[guid]) 
+        if (!this.m_GuidDictionary[partitionGuid]) 
         {
             console.error("Tried to load a partition that does not exsits: " + guid)
             return false;
         }
         
-        return this.LoadEbxFromPath( this.m_GuidDictionary[guid] + ".json", loadCallback )
+        return this.LoadEbxFromPath( this.m_GuidDictionary[partitionGuid] + ".json", loadCallback, instanceGuid )
     }
 
 
-    LoadEbxFromPath(path, loadCallback = null) 
+    LoadEbxFromPath(path, loadCallback = null, instanceGuid = null,) 
     {
-        console.log("Loading partition " + this.m_Game  + "/" + + path)
+        console.log("Loading partition " + this.m_Game  + "/" + path)
         $.ajax({
             context: this,
             url: this.m_Game + "/" + path,
             dataType: 'json',
+            //contentType: "application/json; charset=windows-1252", //iso-8859-1
             async: false,
+
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('Accept', "text/html; charset=utf-8");
+                //xhr.overrideMimeType('application/json; charset=windows-1252');
+            },
 
             success: function(response) 
             {
@@ -107,7 +113,7 @@ class EbxManager
                 }, response);
 
                 if (loadCallback != null)
-                    loadCallback( response );
+                    loadCallback( response, instanceGuid );
             },
             error: function(xhr, status, error) 
             {

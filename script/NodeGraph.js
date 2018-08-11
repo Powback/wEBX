@@ -172,7 +172,7 @@ function ProcessDescriptor(descriptor)
 	if( descriptor == null)
 		return;
 
-	descriptors[descriptor["$guid"]] = descriptor;
+	descriptors[descriptor["$guid"]] = descriptor; //TODO: add partition to decriptor
 
 	console.log(descriptor);
 
@@ -194,6 +194,26 @@ function ProcessDescriptor(descriptor)
 	{
 		AddSpecialNode("OutputLink", value["Id"]["$value"])
 	});
+
+
+	/*
+	Object.values(descriptor["$fields"]["Fields"]["$value"]).forEach(function(value) 
+	{
+		var Node = AddSpecialNode("InputField", value["Id"]["$value"]);
+
+		if (value["Value"]["$value"] != null && 
+		Node.findInputSlot(value["Value"]["$value"]) == -1) 
+		{
+			Node.addInput(value["Value"]["$value"], LiteGraph.EVENT, 
+			{
+				locked: true
+			});
+			
+		}
+
+	});
+	*/
+	
 }
 
 function AddSpecialNode(type, id) {
@@ -437,6 +457,14 @@ function ProcessUIConnection(PC)
 
 function ProcessConnection(PC, variableName, type) 
 {
+	if( PC["Source"]["$value"] == null ||
+		PC["Target"]["$value"] == null)
+	{
+		console.log("Source or target value null: " + PC["Source"]["$value"] + " | " + PC["Target"]["$value"]);
+		return;
+	}
+
+
 	var sourcePartitionGuid = PC["Source"]["$value"]["$partitionGuid"]
 	var sourceInstanceGuid = PC["Source"]["$value"]["$instanceGuid"]
 
@@ -454,46 +482,121 @@ function ProcessConnection(PC, variableName, type)
 		return;
 	}
 
-	var targetNode = AddNode(targetInstance, targetPartitionGuid);
-	var sourceNode = AddNode(sourceInstance, sourcePartitionGuid);
-
-
+	var sourceNode = null;
+	var targetNode = null;
+	
 
 
 	if(type == "Event") 
 	{
-		if( descriptors[targetInstanceGuid] != null && 
-			graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]) != null) 
+		if( descriptors[sourceInstanceGuid] != null) 
 		{
-			targetNode = graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]);
-		}
-
-		if( descriptors[sourceInstanceGuid] != null && 
-			graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]) != null) 
-		{
-			sourceNode = graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]);
+			if ( graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]) == null)
+				sourceNode = targetNode = AddSpecialNode("InputEvent", PC['Source' + variableName]["$value"]["Id"]["$value"]);
+			else
+				sourceNode = graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]);
 		}	
+
+		if( descriptors[targetInstanceGuid] != null ) 
+		{
+			if ( graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]) == null)
+				targetNode = AddSpecialNode("OutputEvent", PC['Target' + variableName]["$value"]["Id"]["$value"]);
+			else
+				targetNode = graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]);
+		}
 	}	
 	else if(type == "Link")
 	{
-		if( descriptors[targetInstanceGuid] != null && 
-			graph.getNodeById("OutputLink" + PC["Target" + variableName]["$value"]) != null)  // ( PC["TargetFieldId"]["$value"] < 0x1505 ? "0" : PC["TargetFieldId"]["$value"] )
+		if( descriptors[sourceInstanceGuid] != null ) 
 		{
-			targetNode = graph.getNodeById("OutputLink" + PC["TargetFieldId"]["$value"]);
-		}
-
-		if( descriptors[sourceInstanceGuid] != null && 
-			
-			graph.getNodeById("InputLink" + PC["SourceFieldId"]["$value"]) != null) 
-		{
-			sourceNode = graph.getNodeById("InputLink" + PC["SourceFieldId"]["$value"]);
+			if ( graph.getNodeById("InputLink" + PC["Source" + variableName]["$value"]) == null)
+				sourceNode = AddSpecialNode("InputLink", PC["Source" + variableName]["$value"]);
+			else
+				sourceNode = graph.getNodeById("InputLink" + PC['Source' + variableName]["$value"]);
 		}	
+
+		if( descriptors[targetInstanceGuid] != null)  
+		{
+			if ( graph.getNodeById("OutputLink" + PC["Target" + variableName]["$value"]) == null)
+				targetNode = AddSpecialNode("OutputLink", PC["Target" + variableName]["$value"]);
+			else
+				targetNode = graph.getNodeById("OutputLink" + PC["Target" + variableName]["$value"]);
+		}
 	}
+	else if(type == "Property")
+	{
+		if( descriptors[sourceInstanceGuid] != null ) 
+		{
+			if ( graph.getNodeById("InputField" + PC["Source" +  variableName]["$value"])  == null)
+			{
+				sourceNode = AddSpecialNode("InputField", PC["Source" +  variableName]["$value"]);
+
+				Object.values(descriptors[sourceInstanceGuid]["$fields"]["Fields"]["$value"]).forEach(function(value) 
+				{
+					if (value["Id"]["$value"] != PC["Source" +  variableName]["$value"])
+						return;
+			
+					if ( value["Value"]["$value"] != null && 
+						 sourceNode.findInputSlot(value["Value"]["$value"]) == -1) 
+					{
+						sourceNode.addInput(value["Value"]["$value"], LiteGraph.EVENT, 
+						{
+							locked: true
+						});
+						
+					}
+			
+				});
+			}
+			else
+				sourceNode = graph.getNodeById("InputField" + PC["Source" +  variableName]["$value"]);
+		}	
+
+
+		
+
+		if( descriptors[targetInstanceGuid] != null ) 
+		{
+			if ( graph.getNodeById("OutputField" + PC["Target" +  variableName]["$value"]) == null )
+			{
+				targetNode = AddSpecialNode("OutputField", PC["Target" +  variableName]["$value"]);
+
+				Object.values(descriptors[targetInstanceGuid]["$fields"]["Fields"]["$value"]).forEach(function(value) 
+				{
+					if (value["Id"]["$value"] != PC["Target" +  variableName]["$value"])
+						return;
+			
+					if ( value["Value"]["$value"] != null && 
+						 targetNode.findInputSlot(value["Value"]["$value"]) == -1) 
+					{
+						targetNode.addInput(value["Value"]["$value"], LiteGraph.EVENT, 
+						{
+							locked: true
+						});
+					}
+			
+				});
+			}
+			else
+				targetNode = graph.getNodeById("OutputField" + PC["Target" +  variableName]["$value"]);
+		}
+	}
+
+	
+	if(targetNode == null)
+		targetNode = AddNode(targetInstance, targetPartitionGuid);
+
+	if(sourceNode == null)	
+		sourceNode = AddNode(sourceInstance, sourcePartitionGuid);
+
+
+
+	
 	
 	if( sourceNode == null || 
-		targetNode == null) 
+		targetNode == null ) 
 	{
-		console.log("Something is wrong");
+		console.log("nodes is null, Something is wrong");
 	}
 
 	AddFields(PC, sourceNode, targetNode, variableName, type);
@@ -538,17 +641,18 @@ function AddConnections(PC, source, target, variableName, type )
 		console.log("Tried to add multiple inputs." + TargetHashString)
 		var offset = 0;
 
-		while(target.findInputSlot(TargetHashString + " - " + offset) != -1) 
+		while(target.findInputSlot(TargetHashString + "|" + offset) != -1) 
 		{
 			offset++;
 		}
 
-		target.addInput(targetHash + " - " + offset, type, 
+		target.addInput(targetHash + "|" + offset, type, 
 		{
 			locked: true
 		});
-		targetFieldSlot = target.findInputSlot(targetHash);
+		targetFieldSlot = target.findInputSlot(targetHash + "|" + offset);
 	}
+	
 	
 	
 	source.connect(sourceFieldSlot, target, targetFieldSlot);
@@ -822,6 +926,12 @@ function CreateNode(type)
 		var node = LiteGraph.createNode("basic/InputLink");
 	case "OutputLink":
 		var node = LiteGraph.createNode("basic/OutputLink");
+
+	case "InputField":
+		var node = LiteGraph.createNode("basic/InputField");
+	case "OutputField":
+		var node = LiteGraph.createNode("basic/OutputField");
+
 	default:
 		var node = LiteGraph.createNode("basic/dummy");
 		node.title = type;

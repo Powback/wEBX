@@ -55,19 +55,24 @@ class HashManager
 			return ""
 
 
-		if (this.m_KnownIDs[hash] != null) 
-		{
-			return "[Instance] " + this.m_KnownIDs[hash];
-		}
-		
 		if (this.m_EventHashes[hash] != null) 
 		{
-			return "[Event] " + this.m_EventHashes[hash];
+			return this.m_EventHashes[hash];
+			//return "[Event] " + this.m_EventHashes[hash];
 		}
+
+		if (this.m_KnownIDs[hash] != null) 
+		{
+			return this.m_KnownIDs[hash];
+			//return "[Instance] " + this.m_KnownIDs[hash];
+		}
+		
 		if (this.m_AssetHashes[hash] != null) 
 		{
-			return "[Asset] " + this.m_AssetHashes[hash];
+			return this.m_AssetHashes[hash];
+			//return "[Asset] " + this.m_AssetHashes[hash];
 		}
+		
 		if (this.m_InterfaceIDs[hash] != null) 
 		{
 			return "(" + this.m_InterfaceIDs[hash] + ")" + hash;

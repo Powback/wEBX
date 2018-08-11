@@ -1,19 +1,7 @@
-var basePath = "rime-dump//";
-var currentPath = "";
-var currentPartition = null;
-var currentPartitionGuid = null;
-var guidDictionary = null;
-var eventHashes = null;
-var assetHashes = null;
-var interfaceIDs = null;
-// Loaded partitions sorted by GUID
-var loadedPartitions = [];
-
-// Loaded instances, sorted by GUID
-var loadedInstances = [];
-
 // Anti recursive measurements
 var CurrentlyLoaded = [];
+
+var currentPartition = null;
 
 
 function DisplayPartition(partition, instanceGuid) {
@@ -43,6 +31,8 @@ function LoadInstance(partitionGuid, instanceGuid)
 	if( Blueprint == null )
 		return;
 
+	currentPartition = Blueprint["$guid"];
+
 
 	$("#Current").html("");
 	$('#Current').append( BuildInstance( partitionGuid, 
@@ -54,9 +44,12 @@ function LoadInstance(partitionGuid, instanceGuid)
 
 function LoadEbxFromHash()
 {
-	LoadCallback = function( instance )
+	LoadCallback = function( instance, instanceGuid=null )
 	{
-		LoadInstance(instance["$guid"], instance["$primaryInstance"])
+		if( instanceGuid != null)
+			LoadInstance(instance["$guid"], instanceGuid)
+		else
+			LoadInstance(instance["$guid"], instance["$primaryInstance"])
 	};
 
 	var hash = location.hash.replace( /^#/, '' );
@@ -66,8 +59,8 @@ function LoadEbxFromHash()
 	if( params.length == 2 )
 	{
 		s_EbxManager.LoadEbxFromGuid( params[0].toLowerCase( ),
-									  params[1].toLowerCase( ),
-									  LoadCallback );
+									  LoadCallback,
+									  params[1].toLowerCase( ) );
 		return;
 	}
 
@@ -133,16 +126,22 @@ $(document).on('click', 'field', function() {
 	}
 });
 
-$(document).on('click', '.ref h1', function() {
-	if ($(this).parent().hasClass("selected")) {
+$(document).on('click', '.ref h1', function() 
+{
+	if ($(this).parent().hasClass("selected")) 
+	{
 		$(this).parent().removeClass("selected");
-	} else {
+	} 
+	else 
+	{
 		$(this).parent().addClass("selected");
 		var partitionGuid = $(this).parent().attr("partitionGuid");
 		var instanceGuid = $(this).parent().attr("instanceGuid");
 		var parentPartition = $(this).parent().attr("parentPartition");
 		var loaded = $(this).parent().hasClass("loaded");
-		if (partitionGuid != null && instanceGuid != null && loaded == false) {
+
+		if (partitionGuid != null && instanceGuid != null && loaded == false) 
+		{
 			$(this).parent().addClass("loaded");
 			$(this).parent().html(HandleReferencePost(partitionGuid, instanceGuid, parentPartition));
 
