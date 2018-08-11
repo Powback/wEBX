@@ -414,8 +414,8 @@ function ProcessUIConnection(PC)
 
 
 
-	var sourceInstance = FindInstance(sourcePartitionGuid, sourceInstanceGuid);
-	var targetInstance = FindInstance(targetPartitionGuid, targetInstanceGuid);
+	var sourceInstance = s_EbxManager.FindInstance(sourcePartitionGuid, sourceInstanceGuid);
+	var targetInstance = s_EbxManager.FindInstance(targetPartitionGuid, targetInstanceGuid);
 
 
 	if( sourceInstance == null || 
@@ -650,7 +650,11 @@ function AddConnections(PC, source, target, variableName, type )
 		{
 			locked: true
 		});
+<<<<<<< HEAD
 		targetFieldSlot = target.findInputSlot(targetHash + "|" + offset);
+=======
+		targetFieldSlot = target.findInputSlot(targetHash + " - " + offset);
+>>>>>>> 7c2a420b660c8c84a4806ae50730368725c7a707
 	}
 	
 	
