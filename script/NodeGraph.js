@@ -641,12 +641,12 @@ function AddConnections(PC, source, target, variableName, type )
 		console.log("Tried to add multiple inputs." + TargetHashString)
 		var offset = 0;
 
-		while(target.findInputSlot(TargetHashString + "|" + offset) != -1) 
+		while(target.findInputSlot(TargetHashString + " - " + offset) != -1) 
 		{
 			offset++;
 		}
 
-		target.addInput(targetHash + "|" + offset, type, 
+		target.addInput(targetHash + " - " + offset, type, 
 		{
 			locked: true
 		});
