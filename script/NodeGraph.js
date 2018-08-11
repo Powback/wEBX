@@ -650,11 +650,7 @@ function AddConnections(PC, source, target, variableName, type )
 		{
 			locked: true
 		});
-<<<<<<< HEAD
-		targetFieldSlot = target.findInputSlot(targetHash + "|" + offset);
-=======
 		targetFieldSlot = target.findInputSlot(targetHash + " - " + offset);
->>>>>>> 7c2a420b660c8c84a4806ae50730368725c7a707
 	}
 	
 	
