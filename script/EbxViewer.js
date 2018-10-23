@@ -163,6 +163,25 @@ var g_TypeFieldHandlers =
 }
 
 
+class EbxViewer
+{
+	constructor()
+    {
+	}
+
+
+	ViewInstance( partitionGuid, instanceGuid )
+	{
+
+	}
+
+	BuildInstance( partitionGuid, instanceGuid, parentPartition = null )
+	{
+
+	}
+}
+
+
 function BuildInstance(partitionGuid, instanceGuid, parentPartition = null) {
 	var current = "";
 	if (CurrentlyLoaded[partitionGuid + instanceGuid] != null) {
@@ -256,9 +275,11 @@ function HandleField(instance, field = null, subField = false) {
 	}
 	else if (typeof instance == "string" || instance instanceof String)
 		content += instance;
-	else {
+	else if (typeof instance == "number" || instance instanceof Number)
+		content += instance;
+	else 
 		content += HandleSubField(instance);
-	}
+	
 
 	//content += "</li>"
 	if (content.indexOf("undefined") != -1) {
@@ -444,13 +465,13 @@ function HandleSimple(value, type) {
 	var content = "";
 	if (simpleTypes[type] != null &&
 		simpleTypes[type] == 2)
-		content += '<value class="Boolean">' + value + "</value>";
+		content += '<value contenteditable="true" class="Boolean">' + value + "</value>";
 	else if (simpleTypes[type] != null &&
 		simpleTypes[type] == 3 &&
 		s_HashManager.GetHashResult(value) != null)
 		content += '<value class="Hash">' + s_HashManager.GetHashResult(value) + '</value>';
 	else if (value !== null)
-		content = '<value class="' + type + '">' + value + "</value>";
+		content = '<value contenteditable="true" class="' + type + '">' + value + "</value>";
 	else
 		content = '<nilValue class="' + type + '">0</nilValue>';
 	return content;
@@ -551,11 +572,15 @@ function ParseLinearTransform(value) {
 	if (value == null)
 		return "<nilValue>*null*</nilValue>";
 
-	var content = '<ul type="2nd"><value class="LinearTransform"><li>LinearTransform(';
+	var content = '<ul type="2nd">'+
+				  '<value class="LinearTransform">' +
+				  '<li>LinearTransform(';
 	content += '<li>' + ParseVec3(value["right"]["$value"]) + ",</li>";
 	content += '<li>' + ParseVec3(value["up"]["$value"]) + ",</li>";;
 	content += '<li>' + ParseVec3(value["forward"]["$value"]) + ",</li>";
 	content += '<li>' + ParseVec3(value["trans"]["$value"]) + "</li>";
-	content += ')</li></value></ul>'
+	content += ')</li>'+
+			   '</value>'+
+			   '</ul>';
 	return content;
 }

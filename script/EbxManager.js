@@ -1,4 +1,5 @@
 
+
 class EbxManager
 {
     constructor()
@@ -6,7 +7,7 @@ class EbxManager
         this.m_GuidDictionary = {};
         this.m_LoadedPartitions = {};
 
-        this.m_Game = "Venice";//"Venice" "Warsaw" "Tunguska" 
+        this.m_Game = "Casablanca";//"Venice";//"Venice" "Warsaw" "Tunguska" 
 
 
         this.m_PartitionLoadedCallback = [];
@@ -117,6 +118,7 @@ class EbxManager
             },
             error: function(xhr, status, error) 
             {
+                console.log(xhr.responseText);
                 var err = JSON.parse( xhr.responseText );
                 console.log("Failed to load partition: "  + this.m_Game + "/" + path)
 

@@ -108,9 +108,9 @@ function Load()
 window.onload = Load;
 
 // hash changed, either load 
-$(window).on('hashchange', function(e) 
+$(window).on('hashchange', function( e ) 
 {
-	LoadEbxFromHash( )
+	LoadEbxFromHash( );
 	//Load();
 	//OnLoad();
 });

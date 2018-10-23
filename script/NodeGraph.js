@@ -72,9 +72,9 @@ function Destroy() {
 
 function LoadGraphInstance( MainInstance )
 {
-	Reset();
+	Reset( );
 
-	if( MainInstance == null)
+	if( MainInstance == null )
 		return;
 
 	if( MainInstance["$baseClass"] == "UIGraphAsset" ||
