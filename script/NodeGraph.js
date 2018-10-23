@@ -15,6 +15,113 @@ LGraphNode.prototype.disconnectInput = function( slot )
 }
 
 
+class Graph
+{
+	constructor()
+	{
+
+	}
+
+	m_LiteGraph = null;
+	m_Nodes = [];
+
+	m_Canvas = null;
+
+	//Cytoscape for node positioning algorithm
+	m_ChartNode = [];
+	m_Edges = [];
+	m_Cytoscape = null;
+
+	Reset() 
+	{
+		console.log("Clearing node graph");
+		Destroy();
+	
+		LiteGraph.NODE_TITLE_COLOR = "#fff";
+		LGraphCanvas.link_type_colors["Event"] = "#3fcdd2";
+		LGraphCanvas.link_type_colors["Property"] = "#dcbc42";
+		LGraphCanvas.link_type_colors["Link"] = "#dc4242";
+	
+		//LGraphCanvas.link_type_colors["Event"] = "#4bdc4b"
+		//LGraphCanvas.link_type_colors["Property"] = "#dcbc42"
+		//LGraphCanvas.link_type_colors["Link"] = "#4ea3d8"
+	
+		graph.start()
+		canvas = new LGraphCanvas("#eventGraph", graph);
+		canvas.render_only_selected = false
+		canvas.background_image = null;
+		canvas.resize($(window).width() - 10, $(window).height() - 10);
+	
+	}
+	
+	Destroy() 
+	{
+	
+		if( m_Cytoscape != null )
+		{
+			m_Cytoscape.destroy();
+			m_Cytoscape = null;
+		}
+	
+		if( m_LiteGraph != null )
+		{
+			m_LiteGraph.clear();
+			m_LiteGraph = null;
+		}
+	
+		if( canvas != null )
+		{
+			canvas.clear();
+			canvas = undefined;
+		}
+	
+		m_LiteGraph = new LGraph();
+		m_LiteGraph.clear();
+	
+		nodes = [];
+		Interfaces = [];
+		chartNode = [];
+		edges = [];
+		
+		
+	
+		console.log("Cleared graph");
+	}
+
+
+
+	CreateNode( type )
+	{
+		if (instance == null) 
+		return null;
+
+		// Node does not exist. Let's create it.
+		if (graph.getNodeById(instance["$guid"]) == null) 
+		{
+			var type = instance["$type"];
+
+			var node = CreateNode(type);
+
+			nodes[instance["$guid"]] = node;
+
+			node.partitionGuid = partitionGuid;
+			node.instance = instance["$guid"];
+			node.id = instance["$guid"];
+			graph.add(node);
+			chartNode[chartNode.length] = 
+			{
+				data: 
+				{
+					id: instance["$guid"]
+				}
+			};
+		}
+		// Set twice for redundancy.
+		return graph.getNodeById(instance["$guid"]);
+
+	}
+}
+
 function Reset() 
 {
 	console.log("Clearing node graph");
