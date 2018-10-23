@@ -19,18 +19,18 @@ class Graph
 {
 	constructor()
 	{
-
+		this.m_LiteGraph = null;
+		this.m_Nodes = [];
+	
+		this.m_Canvas = null;
+	
+		//Cytoscape for node positioning algorithm
+		this.m_ChartNode = [];
+		this.m_Edges = [];
+		this.m_Cytoscape = null;
 	}
 
-	m_LiteGraph = null;
-	m_Nodes = [];
-
-	m_Canvas = null;
-
-	//Cytoscape for node positioning algorithm
-	m_ChartNode = [];
-	m_Edges = [];
-	m_Cytoscape = null;
+	
 
 	Reset() 
 	{

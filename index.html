@@ -23,10 +23,13 @@
 	<script src="script/jquery-ui.min.js"></script>
 	<link rel="stylesheet" href="style/jquery-ui.min.css">
 	
+	<script src="script/Utils.js"></script>
+
 
 	<script src="script/HashManager.js"></script>
 	<script src="script/EbxManager.js"></script>
-	
+
+	<script src="script/EbxTree.js"></script>
 
 	<script src="script/EbxViewer.js"></script>
 	
@@ -43,9 +46,16 @@
 <div id="page">
 	<div id="NavigationWrapper">
 		<button id="toggleEvents" height="20px" style="z-index: 100; width: 100%; position: relative;" onclick="$('.canvasHolder').toggle()">Toggle event graph</button>
-		<div id="Navigation">
+		
+
+		<div id="TreeWrapper">
+
+			<input id="search-input" type="text">
+
+			<div id="Navigation">
 
 
+			</div>
 		</div>
 	</div>
 	<div class="canvasHolder">

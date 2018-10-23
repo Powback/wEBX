@@ -130,39 +130,7 @@ class EbxManager
     }
 
 
-    GenerateTreeFromGuid()
-    {
-        let data = {
-			"type": "folder",
-			"text": "Venice",
-			"state": {
-				"opened": true,
-				"selected": true,
-			},
-			"children": []
-		};
-
-
-        this.m_GuidDictioary.values().forEach(function(subPath) 
-        {
-            let parentIndex = parentPath.children.find(x => x.text.toLowerCase() === subPath.toLowerCase());
-            if (parentIndex === undefined) {
-                let a = parentPath.children.push({
-                    "type": "folder",
-                    "text": subPath,
-                    "children": []
-                });
-                parentPath = parentPath.children[a - 1];
-            } else {
-                parentPath = parentIndex;
-                // Sometimes the object is referenced lowercase. If we have a string that has uppercase letters, we can assume it's correct.
-                // Replace lowercase paths with the actual case.
-                if (hasUpperCase(subPath) && hasLowerCase(parentPath.text)) {
-                    parentPath.text = subPath;
-                }
-            }
-        });
-    }
+    
 
     LoadGuidTable()
     {
@@ -177,7 +145,7 @@ class EbxManager
 
                 this.m_GuidDictionaryLoadedCallback.forEach( function(callback)
                 {
-                    callback( this.m_GuidDictionary );
+                    callback( this, this.m_GuidDictionary );
                 }, this);
             },
             error: function(xhr, status, error) 

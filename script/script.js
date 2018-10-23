@@ -54,6 +54,9 @@ function LoadEbxFromHash()
 
 	var hash = location.hash.replace( /^#/, '' );
 
+	if(hash.length == 0)
+		return;
+
 	var params = hash.split( '&' );
 
 	if( params.length == 2 )
@@ -93,7 +96,10 @@ function Load()
 		}, this);
 	});
 
-	//s_EbxManager.AddGuidDictionaryLoadedCallback( OnGuidTableLoad )
+	s_EbxManager.AddGuidDictionaryLoadedCallback( function( self, dictionary )
+	{
+		s_EbxTree.GenerateData( self.m_Game, dictionary );
+	} )
 
 	s_EbxManager.LoadGuidTable( );
 
