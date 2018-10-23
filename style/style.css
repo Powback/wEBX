@@ -139,6 +139,11 @@ field {
 	color: rgba(102, 217, 239, 1);
 }
 
+.subField
+{
+	color: rgba(102, 239, 107, 1);
+}
+
 h1 {
 	color: #f98926;
 }

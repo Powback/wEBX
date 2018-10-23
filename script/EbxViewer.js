@@ -163,6 +163,109 @@ var g_TypeFieldHandlers =
 }
 
 
+class EbxViewer
+{
+	constructor()
+	{
+		this.m_EbxCache = [];
+	}
+
+	addToCache( key, data )
+	{
+		this.m_EbxCache[key] = data;
+	}
+
+	getFromCache( key )
+	{
+		return this.m_EbxCache[key]
+	}
+
+
+	HandleField(instance, field = null, subField = false) 
+	{
+		var content = "";
+	
+		content += `<li class="${(instance["$array"] != null) ? "minimized" : ""}">
+						<field class="${subfield ? "subField" : ""}">${field}</field>`;
+		
+
+		if (instance["$array"] != null) // Handle array
+		{
+			content += ":";
+			content += HandleArray(instance);
+		}
+		else if (instance["$ref"] != null) // Handle reference
+		{
+			content += HandleReference(instance);
+		}
+		else if (instance["$type"] != null && simpleTypes[instance["$type"]]) // Handle simple
+		{
+			content += HandleSimple(instance["$value"], instance["$type"]);
+		}
+		else if (instance["$type"] != null && advancedTypes[instance["$type"]] != null) // Handle advanced
+		{
+			content += HandleAdvanced(instance["$value"], instance["$type"]);
+		}
+		else if (instance["$enum"] != null) {
+			content += HandleEnum(instance["$enumValue"]);
+		}
+		else if (typeof instance == "string" || instance instanceof String)
+			content += instance;
+		else {
+			content += HandleSubField(instance);
+		}
+	
+		content += "</li>"
+		if (content.indexOf("undefined") != -1) {
+			console.log("Something went wrong. Debug!");
+		}
+		return content;
+	}
+
+	BuildInstance(partitionGuid, instanceGuid, parentpartition=null)
+	{
+		if( this.getFromCache(partitionGuid + instanceGuid) != null)
+		{
+			console.log("Using cached ebx: [partition | instance]" + partitionGuid + " | " + instanceGuid);
+
+			return this.getFromCache(partitionGuid + instanceGuid);
+		}
+
+		var Instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid)
+
+		if (Instance == null)
+			return null;
+
+
+
+
+		content += `<h1 class="${(partitionGuid == parentPartition) ? "localRef" : "remoteRef"}">
+						${Instance["$type"]}
+						${(partitionGuid == parentPartition) ? `<partitionReference>${s_EbxManager.GetPartitionGuidPath(partitionGuid)}</partitionReference>` : ""}
+					</h1>`
+
+		content += `<div class="GuidReferences">
+
+						<label>Partition: </label>' +
+						<div class="guidReference">${partitionGuid.toUpperCase()}</div>
+
+						<label>Instance: </label>
+						<div class="guidReference">${instanceGuid.toUpperCase()}</div>
+
+					</div>`;
+
+		content += `<ul type="first">
+					${Array.from(Instance["$fields"], ([key, value]) => this.HandleField()).join('')}
+					</ul>`;
+
+
+		
+		this.addToCache(partitionGuid + instanceGuid, content);
+
+		return content;
+	}
+}
+
 function BuildInstance(partitionGuid, instanceGuid, parentPartition = null) {
 	var current = "";
 	if (CurrentlyLoaded[partitionGuid + instanceGuid] != null) {
