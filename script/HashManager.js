@@ -19,8 +19,8 @@ class HashManager
     {
         $.ajax({
 			context: this,
-			url: "Hash/eventHashes.json",
-			dataType: 'json',
+			url: s_SettingsManager.getRootPath() + "Hash/eventHashes.json",
+			dataType: "json",
             success: function(response) 
             {
 				console.log("Received eventHashes");
@@ -29,8 +29,8 @@ class HashManager
 		});
 		$.ajax({
 			context: this,
-			url: "Hash/assetHashes.json",
-			dataType: 'json',
+			url: s_SettingsManager.getRootPath() + "Hash/assetHashes.json",
+			dataType: "json",
             success: function(response) 
             {
 				console.log("Received assetHashes");
@@ -39,8 +39,8 @@ class HashManager
 		});
 		$.ajax({
 			context: this,
-			url: "Hash/InterfaceIDs.json",
-			dataType: 'json',
+			url: s_SettingsManager.getRootPath() + "Hash/InterfaceIDs.json",
+			dataType: "json",
             success: function(response) 
             {
 				console.log("Received assetHashes");

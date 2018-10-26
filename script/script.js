@@ -12,7 +12,7 @@ function DisplayPartition(partition, instanceGuid) {
 	partition['$instances'].forEach(function(element) 
 	{
 		if (element["$guid"] == instanceGuid) {
-			$('#Current').append(BuildInstance(partition['$guid'], partition['$primaryInstance']));
+			$('#Current').append(s_EbxViewer.BuildInstance(partition['$guid'], partition['$primaryInstance']));
 		} else {
 			$(container).append('<li>' + element['$type'] + '</li>');
 			//			BuildInstance(element, false);
