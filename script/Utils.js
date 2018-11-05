@@ -22,13 +22,13 @@ function hasUpperCase(str)
 
 function getPaths(path) 
 {
-	var paths = path.split('/');
+	var paths = path.split(/[/\\]+/);
 	paths.pop();
 	return paths;
 }
 
 function getFilename(path) {
-    return path.split("/").filter(function(value) 
+    return path.split(/[/\\]+/).filter(function(value) 
     {
 		return value && value.length;
 	}).reverse()[0];

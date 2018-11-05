@@ -7,9 +7,6 @@ class EbxManager
         this.m_GuidDictionary = {};
         this.m_LoadedPartitions = {};
 
-        this.m_Game = "Warsaw";//"Casablanca" "Venice" "Warsaw" "Tunguska" 
-
-
         this.m_FileTree = {};
 
         this.m_PartitionLoadedCallback = [];
@@ -84,11 +81,11 @@ class EbxManager
 
     LoadEbxFromPath(path, loadCallback = null, instanceGuid = null,) 
     {
-        console.log("Loading partition " + this.m_Game  + "/" + path)
+        console.log("Loading partition " + s_SettingsManager.getGameRequestPath()+ path)
         $.ajax({
             context: this,
-            url: this.m_Game + "/" + path,
-            dataType: 'json',
+            url: s_SettingsManager.getGameRequestPath() + path,
+            dataType: "json",
             //contentType: "application/json; charset=windows-1252", //iso-8859-1
             async: false,
 
@@ -134,11 +131,11 @@ class EbxManager
 
     LoadGuidTable()
     {
-        console.log( "Loading guidTable \"" + this.m_Game  + "/guidDictionary.json" +"\"");
+        console.log( "Loading guidTable \"" + s_SettingsManager.getGameRequestPath() + "guidDictionary.json" +"\"");
         $.ajax({
             context: this,
-            url: this.m_Game  + "/guidDictionary.json",
-            dataType: 'json',
+            url: s_SettingsManager.getGameRequestPath() + "guidDictionary.json",
+            dataType: "json",
             success: function(response) 
             {
                 this.m_GuidDictionary = response;

@@ -211,13 +211,25 @@ class EbxViewer
 		}
 		else if (typeof instance == "string" || instance instanceof String)
 			content += instance;
-		else {
-			content += HandleSubField(instance);
+		else 
+		{
+			//Subfield
+			if (instance["$value"] != null) {
+				content += this.HandleField(instance["$value"], null, true); //
+			}
+			else {
+
+				content += `<ul type="2nd">
+								${Array.from(instance, ([key, value]) => this.HandleField(value, key)).join('')}
+							</ul>`;
+		
+			}
 		}
 	
 		content += "</li>"
 		if (content.indexOf("undefined") != -1) {
 			console.log("Something went wrong. Debug!");
+			debugger;
 		}
 		return content;
 	}
@@ -265,6 +277,8 @@ class EbxViewer
 		return content;
 	}
 }
+
+var s_EbxViewer = new EbxViewer();
 
 function BuildInstance(partitionGuid, instanceGuid, parentPartition = null) {
 	var current = "";

@@ -10,22 +10,22 @@ DefaultNode.prototype.onSelected = function()
 
 
 	if( this.partitionGuid == null ||
-		this.instance == null)
+		this.instanceGuid == null)
 		return;
 		
 	$("#PropertyViewer").html("");
 
-	$("#PropertyViewer").append(BuildInstance(this.partitionGuid, this.instance));
+	$("#PropertyViewer").append(BuildInstance(this.partitionGuid, this.instanceGuid));
 
 }
 
 DefaultNode.prototype.onDblClick = function(e)
 {
 	if( this.partitionGuid == null ||
-		this.instance == null)
+		this.instanceGuid == null)
 		return;
 
-	var Data = s_EbxManager.FindInstance( this.partitionGuid, this.instance);
+	var Data = s_EbxManager.FindInstance( this.partitionGuid, this.instanceGuid);
 
 	if( Data == null )
 		return;

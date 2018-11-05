@@ -15,6 +15,35 @@ LGraphNode.prototype.disconnectInput = function( slot )
 }
 
 
+class CytoscapeSorter
+{
+	constructor()
+	{
+		//Cytoscape for node positioning algorithm
+		this.m_ChartNode = [];
+		this.m_Edges = [];
+		this.m_Cytoscape = null;
+	}
+
+
+	AddNode( id )
+	{
+		var index = this.m_ChartNode.length;
+		this.m_ChartNode[index] = 
+		{
+			data: 
+			{
+				id: instance["$guid"]
+			}
+		};
+
+		return index;
+	}
+}
+
+let s_CytoScape = new CytoscapeSorter();
+
+
 class Graph
 {
 	constructor()
@@ -24,10 +53,7 @@ class Graph
 	
 		this.m_Canvas = null;
 	
-		//Cytoscape for node positioning algorithm
-		this.m_ChartNode = [];
-		this.m_Edges = [];
-		this.m_Cytoscape = null;
+
 	}
 
 	
@@ -90,31 +116,30 @@ class Graph
 
 
 
-	CreateNode( type )
+	CreateNode( nodeType )
 	{
 		if (instance == null) 
-		return null;
+			return null;
 
 		// Node does not exist. Let's create it.
 		if (graph.getNodeById(instance["$guid"]) == null) 
 		{
 			var type = instance["$type"];
 
-			var node = CreateNode(type);
+
+			var node = LiteGraph.createNode(nodeType);
+
 
 			nodes[instance["$guid"]] = node;
 
 			node.partitionGuid = partitionGuid;
-			node.instance = instance["$guid"];
+			node.instanceGuid = instance["$guid"];
 			node.id = instance["$guid"];
+
+			node.CytoscapeIndex = s_CytoScape.AddNode(node.id);
+
 			graph.add(node);
-			chartNode[chartNode.length] = 
-			{
-				data: 
-				{
-					id: instance["$guid"]
-				}
-			};
+	
 		}
 		// Set twice for redundancy.
 		return graph.getNodeById(instance["$guid"]);
@@ -332,7 +357,7 @@ function AddSpecialNode(type, id) {
 		nodes[type + id] = node;
 
 		node.partitionGuid = null;
-		node.instance = null;
+		node.instanceGuid = null;
 
 		node.id = type + id;
 
@@ -1005,7 +1030,7 @@ function AddNode(instance, partitionGuid)
 		nodes[instance["$guid"]] = node;
 
 		node.partitionGuid = partitionGuid;
-		node.instance = instance["$guid"];
+		node.instanceGuid = instance["$guid"];
 		node.id = instance["$guid"];
 		graph.add(node);
 		chartNode[chartNode.length] = 

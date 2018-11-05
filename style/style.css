@@ -76,7 +76,7 @@ body{
 }
 #Navigation {
     overflow-y: scroll;
-    height: 100vh;
+    height: 94%;
     position: fixed;
     width: 25%;
 }
