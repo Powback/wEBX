@@ -88,7 +88,7 @@ class EbxTree
                     "icon" : "jstree-file"
                 }
             },
-            "plugins": ["types", "sort", "json_data", "state", "search" ],
+            "plugins": ["types", "sort", "json_data", "state", "search", "wholerow", /*"contextmenu"*/ ],
             "search": 
             {
 				"case_insensitive": true,
@@ -104,11 +104,16 @@ class EbxTree
                 
                 return (a1.icon < b1.icon) ? 1 : -1;
             },
+            /*
+            "contextmenu": {
+                items: scope.ContextMenu.bind(scope)
+            },
+            */
             "core": {
                 "check_callback": true,
                 'data': scope.m_Data,
                 "themes": {
-                    "name": "default-dark",
+                    "name": "default-dark", // default-dark
                     "dots": true,
                     "icons": true
                 },
@@ -131,7 +136,6 @@ class EbxTree
 
                 let searchString = $(this).val();
 
-
 				console.log(searchString);
 				$(scope.m_TreeElementName).jstree('search', searchString);
             }.bind(this), 500);
@@ -150,6 +154,37 @@ class EbxTree
                 
         });
     }
+
+    /*
+    ContextMenu( node )
+    {
+        let items =
+        {
+            EbxViewer: 
+            { // The "rename" menu item
+                label: "Ebx Viewer",
+                action: function () {}
+            },
+            NodeViewer: 
+            { // The "delete" menu item
+                label: "NodeGraph Viewer",
+                action: function () {}
+            },
+            CurveViewer: 
+            { // The "delete" menu item
+                label: "Curve Viewer",
+                action: function () {}
+            },
+            TimelineViewer: 
+            { // The "delete" menu item
+                label: "Timeline Viewer",
+                action: function () {}
+            }
+        };
+
+        return items;
+    }
+    */
 }
 
 var s_EbxTree = new EbxTree();

@@ -7,7 +7,7 @@ class EbxManager
         this.m_GuidDictionary = {};
         this.m_LoadedPartitions = {};
 
-        this.m_Game = "Casablanca";//"Venice";//"Venice" "Warsaw" "Tunguska" 
+        this.m_Game = "Warsaw";//"Casablanca" "Venice" "Warsaw" "Tunguska" 
 
 
         this.m_FileTree = {};

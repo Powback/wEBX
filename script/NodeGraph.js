@@ -596,7 +596,7 @@ function ProcessConnection(PC, variableName, type)
 
 	if(type == "Event") 
 	{
-		if( descriptors[sourceInstanceGuid] != null) 
+		if( descriptors[sourcePartitionGuid] != null) 
 		{
 			if ( graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]) == null)
 				sourceNode = targetNode = AddSpecialNode("InputEvent", PC['Source' + variableName]["$value"]["Id"]["$value"]);
@@ -604,14 +604,14 @@ function ProcessConnection(PC, variableName, type)
 				sourceNode = graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]);
 		}	
 
-		if( descriptors[targetInstanceGuid] != null ) 
+		if( descriptors[targetPartitionGuid] != null ) 
 		{
 			if ( graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]) == null)
 				targetNode = AddSpecialNode("OutputEvent", PC['Target' + variableName]["$value"]["Id"]["$value"]);
 			else
 				targetNode = graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]);
 		}
-	}	
+	}
 	else if(type == "Link")
 	{
 		if( descriptors[sourceInstanceGuid] != null ) 
@@ -629,7 +629,7 @@ function ProcessConnection(PC, variableName, type)
 			else
 				targetNode = graph.getNodeById("OutputLink" + PC["Target" + variableName]["$value"]);
 		}
-	}
+	}/*
 	else if(type == "Property")
 	{
 		if( descriptors[sourceInstanceGuid] != null ) 
@@ -687,7 +687,7 @@ function ProcessConnection(PC, variableName, type)
 			else
 				targetNode = graph.getNodeById("OutputField" + PC["Target" +  variableName]["$value"]);
 		}
-	}
+	}*/
 
 	
 	if(targetNode == null)
