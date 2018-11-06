@@ -57,26 +57,26 @@ var advancedTypes =
 	"DynamicEvent": true
 }
 
-function stringToBytes ( str ) 
+function stringToBytes(str) 
 {
 	var ch, st, re = [];
-	for (var i = 0; i < str.length; i++ ) 
+	for (var i = 0; i < str.length; i++) 
 	{
-	  ch = str.charCodeAt(i);  // get char 
-	  st = [];                 // set up "stack"
-	  do 
-	  {
-		st.push( ch & 0xFF );  // push byte to stack
-		ch = ch >> 8;          // shift value down by 1 byte
-	  }  
-	  while ( ch );
-	  // add stack contents to result
-	  // done because chars have "wrong" endianness
-	  re = re.concat( st.reverse() );
+		ch = str.charCodeAt(i);  // get char 
+		st = [];                 // set up "stack"
+		do 
+		{
+			st.push(ch & 0xFF);  // push byte to stack
+			ch = ch >> 8;          // shift value down by 1 byte
+		}
+		while (ch);
+		// add stack contents to result
+		// done because chars have "wrong" endianness
+		re = re.concat(st.reverse());
 	}
 	// return an array of bytes
 	return re;
-  }
+}
 
 function DecryptEEString(inputString, guidString, offset) 
 {
@@ -105,14 +105,17 @@ function DecryptEEString(inputString, guidString, offset)
 }
 
 
-function Utf16ArrayToString(inputString) {
+function Utf16ArrayToString(inputString)
+{
 	var Result = "";
 	for (var i = 0; i < inputString.length; i += 2) 
 	{
-		if (i + 1 == inputString.length) {
+		if (i + 1 == inputString.length)
+		{
 			Result += String.fromCharCode(inputString.charCodeAt(i))
 		}
-		else {
+		else
+		{
 			var Byte1 = inputString.charCodeAt(i);
 			var Byte2 = inputString.charCodeAt(i + 1);
 
@@ -124,11 +127,12 @@ function Utf16ArrayToString(inputString) {
 
 var g_TypeFieldHandlers =
 {
-	"RngCharEntityData": function (classInstance) {
+	"RngCharEntityData": function (classInstance)
+	{
 
 		var GuidString = classInstance["$guid"];
 
-		if( (classInstance["$fields"]["Flags"]["$value"] & 0x100) == 0 )
+		if ((classInstance["$fields"]["Flags"]["$value"] & 0x100) == 0)
 			GuidString = "00000000-0000-0000-0000-000000000000";
 
 		var String1 = DecryptEEString(classInstance["$fields"]["In"]["$value"], GuidString, GuidString.charCodeAt(12)); // classInstance["$fields"]["In"]["$value"]
@@ -144,7 +148,8 @@ var g_TypeFieldHandlers =
 
 		return "In-Decrypted: " + DecryptedString;
 	},
-	"SFBMEEntityData": function (classInstance, fieldInstance, fieldName) {
+	"SFBMEEntityData": function (classInstance, fieldInstance, fieldName)
+	{
 		if (fieldName != "In")
 			return "";
 
@@ -170,73 +175,19 @@ class EbxViewer
 		this.m_EbxCache = [];
 	}
 
-	addToCache( key, data )
+	addToCache(key, data)
 	{
 		this.m_EbxCache[key] = data;
 	}
 
-	getFromCache( key )
+	getFromCache(key)
 	{
 		return this.m_EbxCache[key]
 	}
 
-
-	HandleField(instance, field = null, subField = false) 
+	BuildInstance(partitionGuid, instanceGuid, parentpartition = null)
 	{
-		var content = "";
-	
-		content += `<li class="${(instance["$array"] != null) ? "minimized" : ""}">
-						<field class="${subfield ? "subField" : ""}">${field}</field>`;
-		
-
-		if (instance["$array"] != null) // Handle array
-		{
-			content += ":";
-			content += HandleArray(instance);
-		}
-		else if (instance["$ref"] != null) // Handle reference
-		{
-			content += HandleReference(instance);
-		}
-		else if (instance["$type"] != null && simpleTypes[instance["$type"]]) // Handle simple
-		{
-			content += HandleSimple(instance["$value"], instance["$type"]);
-		}
-		else if (instance["$type"] != null && advancedTypes[instance["$type"]] != null) // Handle advanced
-		{
-			content += HandleAdvanced(instance["$value"], instance["$type"]);
-		}
-		else if (instance["$enum"] != null) {
-			content += HandleEnum(instance["$enumValue"]);
-		}
-		else if (typeof instance == "string" || instance instanceof String)
-			content += instance;
-		else 
-		{
-			//Subfield
-			if (instance["$value"] != null) {
-				content += this.HandleField(instance["$value"], null, true); //
-			}
-			else {
-
-				content += `<ul type="2nd">
-								${Array.from(instance, ([key, value]) => this.HandleField(value, key)).join('')}
-							</ul>`;
-		
-			}
-		}
-	
-		content += "</li>"
-		if (content.indexOf("undefined") != -1) {
-			console.log("Something went wrong. Debug!");
-			debugger;
-		}
-		return content;
-	}
-
-	BuildInstance(partitionGuid, instanceGuid, parentpartition=null)
-	{
-		if( this.getFromCache(partitionGuid + instanceGuid) != null)
+		if (this.getFromCache(partitionGuid + instanceGuid) != null)
 		{
 			console.log("Using cached ebx: [partition | instance]" + partitionGuid + " | " + instanceGuid);
 
@@ -271,18 +222,80 @@ class EbxViewer
 					</ul>`;
 
 
-		
+
 		this.addToCache(partitionGuid + instanceGuid, content);
 
 		return content;
 	}
+
+
+	HandleField(instance, field = null, subField = false) 
+	{
+		var content = "";
+
+		content += `<li class="${(instance["$array"] != null) ? "minimized" : ""}">
+						<field class="${subfield ? "subField" : ""}">${field}</field>`;
+
+
+		if (instance["$array"] != null) // Handle array
+		{
+			content += ":";
+			content += HandleArray(instance);
+		}
+		else if (instance["$ref"] != null) // Handle reference
+		{
+			content += HandleReference(instance);
+		}
+		else if (instance["$type"] != null && simpleTypes[instance["$type"]]) // Handle simple
+		{
+			content += HandleSimple(instance["$value"], instance["$type"]);
+		}
+		else if (instance["$type"] != null && advancedTypes[instance["$type"]] != null) // Handle advanced
+		{
+			content += HandleAdvanced(instance["$value"], instance["$type"]);
+		}
+		else if (instance["$enum"] != null)
+		{
+			content += HandleEnum(instance["$enumValue"]);
+		}
+		else if (typeof instance == "string" || instance instanceof String)
+			content += instance;
+		else 
+		{
+			//Subfield
+			if (instance["$value"] != null)
+			{
+				content += this.HandleField(instance["$value"], null, true); //
+			}
+			else
+			{
+
+				content += `<ul type="2nd">
+								${Array.from(instance, ([key, value]) => this.HandleField(value, key)).join('')}
+							</ul>`;
+
+			}
+		}
+
+		content += "</li>"
+		if (content.indexOf("undefined") != -1)
+		{
+			console.log("Something went wrong. Debug!");
+			debugger;
+		}
+		return content;
+	}
+
+
 }
 
 var s_EbxViewer = new EbxViewer();
 
-function BuildInstance(partitionGuid, instanceGuid, parentPartition = null) {
+function BuildInstance(partitionGuid, instanceGuid, parentPartition = null)
+{
 	var current = "";
-	if (CurrentlyLoaded[partitionGuid + instanceGuid] != null) {
+	if (CurrentlyLoaded[partitionGuid + instanceGuid] != null)
+	{
 		console.log("Using previously built instance:" + partitionGuid + instanceGuid);
 		return CurrentlyLoaded[partitionGuid + instanceGuid];
 	}
@@ -294,7 +307,8 @@ function BuildInstance(partitionGuid, instanceGuid, parentPartition = null) {
 		return "*null*"
 
 	// add TypeName 
-	if (partitionGuid == parentPartition) {
+	if (partitionGuid == parentPartition)
+	{
 
 		current += '<h1 class="localRef">' + Instance["$type"] + "</h1>";
 		current += '<div class="GuidReferences">' +
@@ -305,7 +319,8 @@ function BuildInstance(partitionGuid, instanceGuid, parentPartition = null) {
 			'<div class="guidReference">' + instanceGuid.toUpperCase() + '</div>' +
 			'</div>';
 	}
-	else {
+	else
+	{
 		current += '<h1 class="remoteRef">' + Instance["$type"] +
 			' <partitionReference>' + s_EbxManager.GetPartitionGuidPath(partitionGuid) + '</partitionReference>' +
 			'</h1>' +
@@ -325,12 +340,13 @@ function BuildInstance(partitionGuid, instanceGuid, parentPartition = null) {
 
 
 	if (g_TypeFieldHandlers[Instance["$type"]] != null)
-			current += g_TypeFieldHandlers[Instance["$type"]](Instance)
+		current += g_TypeFieldHandlers[Instance["$type"]](Instance)
 
-	keys.forEach(function (fieldName) {
+	keys.forEach(function (fieldName)
+	{
 		var FieldInstance = Instance["$fields"][fieldName];
 
-		
+
 
 
 		current += HandleField(FieldInstance, fieldName);
@@ -341,7 +357,8 @@ function BuildInstance(partitionGuid, instanceGuid, parentPartition = null) {
 	return current;
 }
 
-function HandleField(instance, field = null, subField = false) {
+function HandleField(instance, field = null, subField = false)
+{
 	var content = "";
 
 	if (field != null && subField == false)
@@ -368,36 +385,42 @@ function HandleField(instance, field = null, subField = false) {
 	{
 		content += HandleAdvanced(instance["$value"], instance["$type"]);
 	}
-	else if (instance["$enum"] != null) {
+	else if (instance["$enum"] != null)
+	{
 		content += HandleEnum(instance["$enumValue"]);
 	}
 	else if (typeof instance == "string" || instance instanceof String)
 		content += instance;
 	else if (typeof instance == "number" || instance instanceof Number)
 		content += instance;
-	else 
+	else
 		content += HandleSubField(instance);
-	
+
 
 	//content += "</li>"
-	if (content.indexOf("undefined") != -1) {
+	if (content.indexOf("undefined") != -1)
+	{
 		console.log("Something went wrong. Debug!");
 	}
 	return content;
 }
 
-function HandleSubField(instance) {
+function HandleSubField(instance)
+{
 	var content = "";
-	if (instance["$value"] != null) {
+	if (instance["$value"] != null)
+	{
 		content += HandleField(instance["$value"], null, true); //
 	}
-	else {
+	else
+	{
 		//if (instance["$type"] == null)
 		//	return;
 
 		content += '<ul type="2nd">';
 
-		Object.keys(instance).forEach(function (subField) {
+		Object.keys(instance).forEach(function (subField)
+		{
 			content += HandleField(this[subField], subField);
 		}, instance);
 		content += "</ul>";
@@ -405,41 +428,49 @@ function HandleSubField(instance) {
 	return content;
 }
 
-function HandleReference(instance, direct, directType) {
-	var content = '<div class="ref" ';
-	if (instance != null) {
+function HandleReference(instance, direct, directType)
+{
+	var content = "";
+
+	if (instance != null)
+	{
 
 		if (direct &&
 			instance['$partitionGuid'] != null &&
-			instance['$instanceGuid'] != null) {
+			instance['$instanceGuid'] != null)
+		{
 			var PartitionGuid = instance["$partitionGuid"];
 			var InstanceGuid = instance["$instanceGuid"];
 			instance["$type"] = directType;
 		}
-		else {
-			if (instance["$value"] != null && instance["$value"]["$partitionGuid"] != null && instance["$value"]["$instanceGuid"] != null) {
+		else
+		{
+			if (instance["$value"] != null && instance["$value"]["$partitionGuid"] != null && instance["$value"]["$instanceGuid"] != null)
+			{
 				var PartitionGuid = instance["$value"]["$partitionGuid"];
 				var InstanceGuid = instance["$value"]["$instanceGuid"];
 			}
 		}
 	}
-	if (PartitionGuid == null || InstanceGuid == null) {
-		return content + "><nilValue>*nullRef*</nilValue></div>"
+
+	if (PartitionGuid == null || InstanceGuid == null)
+	{
+		return '<div class="ref" ' + "><nilValue>*nullRef*</nilValue></div>"
 	}
-	else {
-		content += 'partitionGuid="' + PartitionGuid + '" instanceGuid="' + InstanceGuid + '" ' + 'parentPartition="' + currentPartition + '">'
-	}
-	if (PartitionGuid == currentPartition) {
-		content += '<h1 class="localRef">';
-	}
-	else {
-		content += '<h1 class="remoteRef">';
-	}
+
+	content += `<div class="ref" partitionGuid="${PartitionGuid}" 
+									instanceGuid="${InstanceGuid}" 
+									parentPartition="${currentPartition}">`;
+
+	content += `<h1 class="${(PartitionGuid == currentPartition) ? "localRef" : "remoteRef"}"`;
+
+
 
 
 	var Instance = s_EbxManager.FindInstance(PartitionGuid, InstanceGuid, false);
 
-	if (Instance != null) {
+	if (Instance != null)
+	{
 		//content += BuildInstance(loadedPartitions[partitionGuid][instanceGuid]);
 		content += Instance["$type"] +
 			'</h1>' +
@@ -453,7 +484,8 @@ function HandleReference(instance, direct, directType) {
 			'</div>';
 
 	}
-	else {
+	else
+	{
 		/*
 		if (loadedPartitions[partitionGuid] == null) 
 		{
@@ -484,7 +516,8 @@ function HandleReference(instance, direct, directType) {
 	return content;
 }
 
-function HandleReferencePost(partitionGuid, instanceGuid, parentPartition) {
+function HandleReferencePost(partitionGuid, instanceGuid, parentPartition)
+{
 	var content = ""
 
 	var Instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid);
@@ -497,25 +530,29 @@ function HandleReferencePost(partitionGuid, instanceGuid, parentPartition) {
 	return content;
 }
 
-function HandleArray(instance) {
+function HandleArray(instance)
+{
 	var content = "";
 	content = " <count>(" + Object.values(instance['$value']).length + ")</count>";
 
-	if (Object.values(instance['$value']).length == 0) {
+	if (Object.values(instance['$value']).length == 0)
+	{
 		return content + "<nilValue>*nullArray*</nilValue>";
 	}
 
 
 	content += '<ul class="array">';
 	var i = 1;
-	Object.values(instance['$value']).forEach(function (refInstance) {
+	Object.values(instance['$value']).forEach(function (refInstance)
+	{
 		if (instance["$ref"] != null) // Handle ref
 		{
 			content += "<li><index>[" + i + "]</index>";
 			content += HandleReference(refInstance, true, instance['$type']);
 			content += "</li>"
 		}
-		else {
+		else
+		{
 			content += "<li><index>[" + i + "]</index>";
 			content += HandleField(refInstance);
 			content += "</li>";
@@ -549,16 +586,20 @@ function HandleArray(instance) {
 
 }
 
-function HandleEnum(enumValue) {
-	if (enumValue != null) {
+function HandleEnum(enumValue)
+{
+	if (enumValue != null)
+	{
 		return '<value class="enum">' + enumValue + "</value>";
 	}
-	else {
+	else
+	{
 		return "<nilValue>*unknownEnum*</nilValue";
 	}
 }
 
-function HandleSimple(value, type) {
+function HandleSimple(value, type)
+{
 	// If the value is not null or empty
 	var content = "";
 	if (simpleTypes[type] != null &&
@@ -575,11 +616,13 @@ function HandleSimple(value, type) {
 	return content;
 }
 
-function HandleAdvanced(value, type) {
+function HandleAdvanced(value, type)
+{
 	// If the value is not null or empty
 	var content = "";
 
-	if (value) {
+	if (value)
+	{
 		content = '<value class="' + type + '">';
 	}
 
@@ -588,16 +631,19 @@ function HandleAdvanced(value, type) {
 	else
 		content += value;
 
-	if (content != '<value class="' + type + '">') {
+	if (content != '<value class="' + type + '">')
+	{
 		content += "</value>"
 	}
-	else { //Value is null or empty.
+	else
+	{ //Value is null or empty.
 		content = "<nilValue>*null*</nilValue>";
 	}
 	return content;
 }
 
-function HandleEvent(value) {
+function HandleEvent(value)
+{
 	var content = ':<subfield>EventSpec</subfield><ul type="2nd">';
 
 	content += '<li><field>Id</field><value class="EventSpec">';
@@ -613,7 +659,8 @@ function HandleEvent(value) {
 }
 
 
-function ParseVec2(value, raw = false) {
+function ParseVec2(value, raw = false)
+{
 	if (value == null)
 		return "<nilValue>*null*</nilValue>";
 
@@ -630,7 +677,8 @@ function ParseVec2(value, raw = false) {
 	return content;
 }
 
-function ParseVec3(value, raw = false) {
+function ParseVec3(value, raw = false)
+{
 	if (value == null)
 		return "<nilValue>*null*</nilValue>";
 
@@ -649,7 +697,8 @@ function ParseVec3(value, raw = false) {
 	return content;
 }
 
-function ParseVec4(value, raw = false) {
+function ParseVec4(value, raw = false)
+{
 	if (value == null)
 		return "<nilValue>*null*</nilValue>";
 
@@ -666,19 +715,20 @@ function ParseVec4(value, raw = false) {
 	return content;
 }
 
-function ParseLinearTransform(value) {
+function ParseLinearTransform(value)
+{
 	if (value == null)
 		return "<nilValue>*null*</nilValue>";
 
-	var content = '<ul type="2nd">'+
-				  '<value class="LinearTransform">' +
-				  '<li>LinearTransform(';
+	var content = '<ul type="2nd">' +
+		'<value class="LinearTransform">' +
+		'<li>LinearTransform(';
 	content += '<li>' + ParseVec3(value["right"]["$value"]) + ",</li>";
 	content += '<li>' + ParseVec3(value["up"]["$value"]) + ",</li>";;
 	content += '<li>' + ParseVec3(value["forward"]["$value"]) + ",</li>";
 	content += '<li>' + ParseVec3(value["trans"]["$value"]) + "</li>";
-	content += ')</li>'+
-			   '</value>'+
-			   '</ul>';
+	content += ')</li>' +
+		'</value>' +
+		'</ul>';
 	return content;
 }

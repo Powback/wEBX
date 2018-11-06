@@ -27,7 +27,8 @@ function getPaths(path)
 	return paths;
 }
 
-function getFilename(path) {
+function getFilename(path) 
+{
     return path.split(/[/\\]+/).filter(function(value) 
     {
 		return value && value.length;
