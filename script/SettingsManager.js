@@ -3,8 +3,8 @@ class SettingsManager
 {
     constructor()
     {
-        this.m_Game = "rime-dump";//"Venice" "Warsaw" "Tunguska" "Casablanca"
-        this.m_DataPath = "http://webx.powback.com/";
+        this.m_Game = "Casablanca";//"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
+        this.m_DataPath = ""; // "http://webx.powback.com/"
     }
 
 

@@ -173,6 +173,8 @@ class EbxViewer
 	constructor()
 	{
 		this.m_EbxCache = [];
+
+		this.m_TypeHandlers = {};
 	}
 
 	addToCache(key, data)
@@ -185,7 +187,7 @@ class EbxViewer
 		return this.m_EbxCache[key]
 	}
 
-	BuildInstance(partitionGuid, instanceGuid, parentpartition = null)
+	BuildInstance(partitionGuid, instanceGuid, parentPartition = null)
 	{
 		if (this.getFromCache(partitionGuid + instanceGuid) != null)
 		{
@@ -218,6 +220,7 @@ class EbxViewer
 					</div>`;
 
 		content += `<ul type="first">
+					${(this.m_TypeHandlers[Instance["$type"]] != null) ? this.m_TypeHandlers[Instance["$type"]]() : ""}
 					${Array.from(Instance["$fields"], ([key, value]) => this.HandleField()).join('')}
 					</ul>`;
 
@@ -290,6 +293,7 @@ class EbxViewer
 }
 
 var s_EbxViewer = new EbxViewer();
+
 
 function BuildInstance(partitionGuid, instanceGuid, parentPartition = null)
 {
@@ -405,6 +409,7 @@ function HandleField(instance, field = null, subField = false)
 	return content;
 }
 
+
 function HandleSubField(instance)
 {
 	var content = "";
@@ -459,10 +464,10 @@ function HandleReference(instance, direct, directType)
 	}
 
 	content += `<div class="ref" partitionGuid="${PartitionGuid}" 
-									instanceGuid="${InstanceGuid}" 
-									parentPartition="${currentPartition}">`;
+								 instanceGuid="${InstanceGuid}" 
+								 parentPartition="${currentPartition}">`;
 
-	content += `<h1 class="${(PartitionGuid == currentPartition) ? "localRef" : "remoteRef"}"`;
+	content += `<h1 class="${(PartitionGuid == currentPartition) ? "localRef" : "remoteRef"}">`;
 
 
 
@@ -471,6 +476,8 @@ function HandleReference(instance, direct, directType)
 
 	if (Instance != null)
 	{
+		content += ""
+
 		//content += BuildInstance(loadedPartitions[partitionGuid][instanceGuid]);
 		content += Instance["$type"] +
 			'</h1>' +

@@ -146,7 +146,7 @@ class EbxTree
             if (data.node == null) 
                 return;
 
-            var path = data.instance.get_path(data.node,'/').replace(s_EbxManager.m_Game + "/", "");
+            var path = data.instance.get_path(data.node,'/').replace(s_SettingsManager.m_Game + "/", "");
 
             window.location.hash = "#"+path;
 

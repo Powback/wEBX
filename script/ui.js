@@ -1,3 +1,6 @@
+
+/*
 $( function() {
 	$( "#Navigation" ).resizable();
 } );
+*/

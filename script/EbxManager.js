@@ -138,6 +138,9 @@ class EbxManager
             dataType: "json",
             success: function(response) 
             {
+                console.log("guidDictionary loaded!");
+
+                
                 this.m_GuidDictionary = response;
 
                 this.m_GuidDictionaryLoadedCallback.forEach( function(callback)

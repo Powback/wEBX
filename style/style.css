@@ -65,22 +65,31 @@ body{
 	position: relative;
 }
 #NavigationWrapper {
-	/*position: fixed;*/
+	display: inline-block;
     color: #fff;
     overflow: hidden;
-    border-right: 3px solid #424242;
     min-height: 100%;
     min-width: 25%;
-    width: 25%;
-    margin-right: 20px;
+    width: auto;
 }
 #Navigation {
-    overflow-y: scroll;
-    height: 94%;
-    position: fixed;
-    width: 25%;
+	position: relative;
+    height: auto;
+	width: 100%;
+	overflow: auto;
 }
-#currentWrapper {
+
+#search-input
+{
+	position: relative;
+	display: inline-block;
+	height: auto;
+	width: 100%;
+
+	border: 2px black solid;
+}
+#currentWrapper 
+{
     width: 60%;
 }
 
@@ -89,6 +98,15 @@ body{
 	line-height: 16px;
 	margin-top: 10px;
     margin-bottom: 50px;
+}
+
+#eventGraph
+{
+	display: inline-block;
+	border: 1px solid;
+	height: auto;
+	width: auto;
+	background-color: rgba(39, 40, 34, 1)
 }
 
 ul {
@@ -262,4 +280,9 @@ value.EventSpec {
 div#PropertyViewer {
     z-index: 3;
     display: inline-table;
+}
+
+body .lm_content
+{
+	overflow: scroll;
 }
