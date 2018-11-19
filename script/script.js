@@ -55,8 +55,10 @@ function LoadInstance(partitionGuid, instanceGuid)
 
 function LoadEbxFromHash() 
 {
-	LoadCallback = function (instance, instanceGuid = null) 
+	let LoadCallback = function (instance, instanceGuid = null) 
 	{
+		s_MessageSystem.ExecuteEventSync("OnPrimaryInstanceSelected", instance["$guid"])
+
 		if (instanceGuid != null)
 			LoadInstance(instance["$guid"], instanceGuid)
 		else
@@ -273,8 +275,17 @@ function CreatePageLayout()
 
 function Load() 
 {
-
 	CreatePageLayout();
+
+	s_MessageSystem.RegisterEventHandler("OnFileSelected", function (data)
+	{
+		window.location.hash = "#" + data;
+	});
+
+	s_MessageSystem.RegisterEventHandler("OnInstanceSelected", function (data)
+	{
+		window.location.hash = "#" + data["partitionGuid"] + "&" + data["instanceGuid"];
+	});
 
 
 	//LoadDirectory();

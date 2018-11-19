@@ -8,7 +8,11 @@ class FolderView
         this.m_Dom = $(document.createElement("div"));
         this.m_Table = $(document.createElement("table"));
 
+        this.m_Table.attr("width", "100%");
+
         this.m_Dom.append(this.m_Table);
+
+        this.InitTable();
 
 
         //Register with goldenlayout
@@ -16,20 +20,96 @@ class FolderView
 
         //Register handler
         s_MessageSystem.RegisterEventHandler("OnFolderSelected", this.OnFolderSelected.bind(this));
+        s_MessageSystem.RegisterEventHandler("OnPrimaryInstanceSelected", this.OnPrimaryInstanceSelected.bind(this));
     }
 
-    OnFolderSelected( data )
+    InitTable()
     {
         this.m_Table.html("");
 
         this.m_Table.append(`
-			<tr>
-				<th></th>
-				<th><b>Name</b></th>
-				<th><b>Type</b></th>
-			</tr>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th><b>Name</b></th>
+                    <th><b>Type</b></th>
+                </tr>
+            </thead>
         `);
         
+    }
+
+
+    CreateTableEntry( tableData )
+    {
+        let entry = $(document.createElement("tr"));
+        let icon = $(document.createElement("i"));
+        let name = $(document.createElement("td"));
+        let type = $(document.createElement("td"));
+        entry.append(icon);
+        entry.append(name);
+        entry.append(type);
+
+
+        icon.addClass("jstree-icon");
+        icon.addClass(tableData["type"]);
+
+        name.html(tableData["name"]);
+
+        type.html(tableData["type"]);
+
+
+        let Callback = function(e, data) 
+        {
+            s_MessageSystem.ExecuteEventSync("OnInstanceSelected", {
+                "partitionGuid": tableData["partitionGuid"],
+                "instanceGuid": tableData["instanceGuid"]
+            } );
+        };
+
+        entry.on('click', Callback);
+
+        return [entry, icon, name, type];
+    }
+
+    OnPrimaryInstanceSelected( partitionGuid )
+    {
+        if (partitionGuid == null)
+            return;
+
+        this.InitTable();
+
+        let Partition = s_EbxManager.FindPartition(partitionGuid)
+        
+        if(Partition["$instances"] == null)
+            return;
+
+        for (let InstanceIndex in Partition["$instances"])
+        {
+            let Instance = Partition["$instances"][InstanceIndex];
+
+            let TypeName = ( Instance["$type"] != null ? Instance["$type"] : "<unknown type>");
+
+
+            let [EntryElement, IconElement, NameElement, TypeElement] = this.CreateTableEntry(
+            {
+                "name": Partition["$guid"],
+                "type": TypeName,
+                "partitionGuid": Partition["$guid"],
+                "instanceGuid": Instance["$guid"]
+            });
+
+
+            this.m_Table.append(EntryElement);
+
+        }
+
+    }
+
+    OnFolderSelected( data )
+    {
+        this.InitTable();
+
         if( data["children"] == null )
             return;
 
@@ -44,32 +124,16 @@ class FolderView
                 let TypeName = ( Instance["$type"] != null ? Instance["$type"] : "<unknown>");
 
 
-                let entry = $(document.createElement("tr"));
-                let icon = $(document.createElement("i"));
-                let name = $(document.createElement("td"));
-                let type = $(document.createElement("td"));
-                entry.append(icon);
-                entry.append(name);
-                entry.append(type);
-
-
-                icon.addClass("jstree-icon");
-                icon.addClass(TypeName);
-
-                name.html(result["$name"]);
-
-                type.html(TypeName);
-
-
-                name.on('click', function(e, data) 
+                let [EntryElement, IconElement, NameElement, TypeElement] = this.CreateTableEntry(
                 {
-                    s_MessageSystem.ExecuteEventSync("OnInstanceSelected", {
-                        "partitionGuid": result["$guid"],
-                        "instanceGuid": result["$primaryInstance"]
-                    } );
+                    "name": result["$name"],
+                    "type": TypeName,
+                    "partitionGuid":result["$guid"],
+                    "instanceGuid": result["$primaryInstance"]
                 });
-
-                this.m_Table.append(entry);
+    
+        
+                this.m_Table.append(EntryElement);
             }.bind(this));
         }
     }

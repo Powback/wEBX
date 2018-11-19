@@ -286,3 +286,18 @@ body .lm_content
 {
 	overflow: scroll;
 }
+
+
+thead
+{
+	height: 25px;
+	text-align: center;
+
+	background-color: rgba(20, 20, 20, 0.8);
+}
+
+th
+{
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+}

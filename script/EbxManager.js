@@ -46,24 +46,30 @@ class EbxManager
         this.m_GuidDictionary[partitionGuid] = path;
     }
 
-
-    FindInstance( partitionGuid, instanceGuid, shouldLoad = true ) 
+    FindPartition( partitionGuid, shouldLoad = true ) 
     {
         if( partitionGuid == null)
             return null;
 
         if( this.m_LoadedPartitions[partitionGuid] == null && shouldLoad == true )
-            this.LoadEbxFromGuid(partitionGuid);
+            this.LoadEbxFromGuid(partitionGuid); 
 
+        return this.m_LoadedPartitions[partitionGuid];
+    }
+
+    FindInstance( partitionGuid, instanceGuid, shouldLoad = true ) 
+    {
         if( instanceGuid == null)
             return null;
 
-        if (this.m_LoadedPartitions[partitionGuid] == null ||
-            this.m_LoadedPartitions[partitionGuid][instanceGuid] == null)
+        var Partition = this.FindPartition(partitionGuid);
+
+        if (Partition == null ||
+            Partition["InstanceGuidMap"][instanceGuid] == null)
             return null;
 
 
-        return this.m_LoadedPartitions[partitionGuid][instanceGuid];
+        return Partition["InstanceGuidMap"][instanceGuid];
     }
 
     
@@ -98,11 +104,14 @@ class EbxManager
             {
 
                 
-                this.m_LoadedPartitions[response['$guid']] = {};
+                this.m_LoadedPartitions[response['$guid']] = response;
+
+
+                this.m_LoadedPartitions[response['$guid']]["InstanceGuidMap"] = {};
 
                 response['$instances'].forEach(function(element) 
                 {
-                    this.m_LoadedPartitions[response['$guid']][element['$guid']] = element;
+                    this.m_LoadedPartitions[response['$guid']]["InstanceGuidMap"][element['$guid']] = element;
                 }, this);
 
                 this.AddPartitionGuidPath( response['$guid'], path );
