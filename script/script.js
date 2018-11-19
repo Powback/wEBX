@@ -141,7 +141,7 @@ var LayoutConfig =
 								[
 									{
 										type: 'component',
-										componentName: 'FileTree',
+										componentName: 'FileEbxTree',
 										title: 'File Browser',
 
 										isClosable: false,
@@ -149,7 +149,7 @@ var LayoutConfig =
 									},
 									{
 										type: 'component',
-										componentName: 'test',
+										componentName: 'FolderView',
 										title: 'Instance List',
 
 										isClosable: false,
@@ -197,12 +197,13 @@ let g_PageLayout = null;
 function CreatePageLayout()
 {
 
-
+/*
 	let SavedState = localStorage.getItem('PageLayoutConfig');
 
 	if (SavedState != null)
 		g_PageLayout = new GoldenLayout(JSON.parse(SavedState), $('#page'));
 	else
+	*/
 		g_PageLayout = new GoldenLayout(LayoutConfig, $('#page'));
 
 	g_PageLayout.on('stateChanged', function ()
@@ -212,6 +213,10 @@ function CreatePageLayout()
 
 	//g_PageLayout = new GoldenLayout(LayoutConfig, $('#page')); //,  $('#currentWrapper')
 
+	g_PageLayout.registerComponent('FileEbxTree', EbxTree);
+
+	g_PageLayout.registerComponent('FolderView', FolderView);
+/*
 	g_PageLayout.registerComponent('FileTree', function (container, state)
 	{
 
@@ -224,6 +229,7 @@ function CreatePageLayout()
 		console.log(container);
 
 	});
+	*/
 
 	g_PageLayout.registerComponent('EbxViewer', function (container, state)
 	{
@@ -247,6 +253,7 @@ function CreatePageLayout()
 		container.getElement().append($('<div id="PropertyViewer"></div>'));
 	});
 
+	/*
 	g_PageLayout.registerComponent('test', function (container, state)
 	{
 
@@ -259,6 +266,7 @@ function CreatePageLayout()
 											</tbody>
 										</table>`));
 	});
+	*/
 
 	g_PageLayout.init();
 }
@@ -286,10 +294,12 @@ function Load()
 
 	s_EbxManager.AddGuidDictionaryLoadedCallback(function (self, dictionary)
 	{
-		s_EbxTree.GenerateData(s_SettingsManager.m_Game, dictionary);
+		s_MessageSystem.ExecuteEventSync("OnGuidDictionaryLoaded", dictionary);
 	})
 
 	s_EbxManager.LoadGuidTable();
+
+	s_MessageSystem.ExecuteEventSync("OnGameLoaded", s_SettingsManager.m_Game);
 
 	LoadEbxFromHash();
 }

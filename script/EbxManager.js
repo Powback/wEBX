@@ -79,7 +79,7 @@ class EbxManager
     }
 
 
-    LoadEbxFromPath(path, loadCallback = null, instanceGuid = null,) 
+    LoadEbxFromPath(path, loadCallback = null, instanceGuid = null) 
     {
         console.log("Loading partition " + s_SettingsManager.getGameRequestPath()+ path)
         $.ajax({

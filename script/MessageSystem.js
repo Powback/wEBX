@@ -23,9 +23,9 @@ class MessageSystem
 
         for (let Key in this.m_Handlers[id])
         {
-            let HandlerFunc = this.m_Handlers[Key];
+            let HandlerFunc = this.m_Handlers[id][Key];
 
-            if (HandlerFunc == null)
+            if(HandlerFunc == null)
                 continue;
 
             let RetVal = HandlerFunc(data);
