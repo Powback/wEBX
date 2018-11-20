@@ -77,7 +77,7 @@ class EbxManager
     {
         if (!this.m_GuidDictionary[partitionGuid]) 
         {
-            console.error("Tried to load a partition that does not exsits: " + guid)
+            console.error("Tried to load a partition that does not exsits: " + partitionGuid)
             return false;
         }
         

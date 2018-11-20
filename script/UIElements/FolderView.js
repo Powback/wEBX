@@ -61,7 +61,8 @@ class FolderView
 
         let Callback = function(e, data) 
         {
-            s_MessageSystem.ExecuteEventSync("OnInstanceSelected", {
+            s_MessageSystem.ExecuteEventSync("OnInstanceSelected", 
+            {
                 "partitionGuid": tableData["partitionGuid"],
                 "instanceGuid": tableData["instanceGuid"]
             } );
@@ -93,7 +94,7 @@ class FolderView
 
             let [EntryElement, IconElement, NameElement, TypeElement] = this.CreateTableEntry(
             {
-                "name": Partition["$guid"],
+                "name": Instance["$guid"],
                 "type": TypeName,
                 "partitionGuid": Partition["$guid"],
                 "instanceGuid": Instance["$guid"]

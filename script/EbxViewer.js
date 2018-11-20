@@ -237,7 +237,7 @@ class EbxViewer
 		var content = "";
 
 		content += `<li class="${(instance["$array"] != null) ? "minimized" : ""}">
-						<field class="${subfield ? "subField" : ""}">${field}</field>`;
+						<field class="${subfield ? "subField" : ""}">${field}</field>: - <type>${instance["$type"]}</type>`;
 
 
 		if (instance["$array"] != null) // Handle array
@@ -366,14 +366,16 @@ function HandleField(instance, field = null, subField = false)
 	var content = "";
 
 	if (field != null && subField == false)
-		content = '<li><field>' + field + "</field>:";
+	{
+		content += '<li><type>' + instance["$type"] + '</type> <field>' + field + "</field>: ";
+	}
 
 	if (field != null && subField)
-		content = ":<subfield>" + field + "</subfield>";
+		content += ":<subfield>" + field + "</subfield>";
 
 	if (instance["$array"] != null) // Handle array
 	{
-		content = '<li class="minimized"><field>' + field + "</field>:";
+		content = '<li class="minimized"><type>' + instance["$type"] + '</type> <field>' + field + "</field>: ";
 		content += HandleArray(instance);
 		content += "</li>"
 	}
@@ -401,7 +403,6 @@ function HandleField(instance, field = null, subField = false)
 		content += HandleSubField(instance);
 
 
-	//content += "</li>"
 	if (content.indexOf("undefined") != -1)
 	{
 		console.log("Something went wrong. Debug!");
