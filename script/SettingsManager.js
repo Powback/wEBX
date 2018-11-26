@@ -3,10 +3,32 @@ class SettingsManager
 {
     constructor()
     {
-        this.m_Game = "Casablanca";//"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
-        this.m_DataPath = ""; // "http://webx.powback.com/"
+        let Settings = localStorage.getItem("webx_settings");
+
+        if( Settings )
+        {
+            this.m_Game = Settings["game"];
+            this.m_DataPath = Settings["dataPath"];
+        }
+        else
+        {
+            this.m_Game = "Venice";//"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
+            this.m_DataPath = ""; // "http://webx.powback.com/"
+
+            saveSettings( );
+        }
     }
 
+    saveSettings()
+    {
+        let SaveData = 
+        {
+            "game": this.m_Game,
+            "dataPath": this.m_DataPath
+        };
+
+        localStorage.setItem('webx_settings', JSON.stringify(SaveData));
+    }
 
     getGameRequestPath()
     {
