@@ -1,11 +1,5 @@
 *.py
 *.json
-* - Copy/*
-* - Copy.*
-old/
-ngd/
-*.bak
-*/*old.js
-*.bak2
-rime-dump/
-wEBX.7z
+*.idea
+*/*.idea
+resources/*

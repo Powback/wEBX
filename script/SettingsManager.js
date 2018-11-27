@@ -14,6 +14,7 @@ class SettingsManager
             };
 
            this.saveSettings( );
+
         }
     }
 
@@ -33,7 +34,7 @@ class SettingsManager
     getRootPath()
     {
         let DataPath = this.m_Settings["dataPath"];
-        
+
         if( DataPath != "" && DataPath != null )
             return DataPath;
 
