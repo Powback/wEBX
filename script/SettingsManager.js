@@ -15,7 +15,7 @@ class SettingsManager
             this.m_Game = "Venice";//"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
             this.m_DataPath = ""; // "http://webx.powback.com/"
 
-            saveSettings( );
+            this.saveSettings( );
         }
     }
 
