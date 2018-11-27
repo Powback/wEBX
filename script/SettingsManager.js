@@ -10,7 +10,7 @@ class SettingsManager
             this.m_Settings = 
             {
                 "game": "Venice", //"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
-                "dataPath": "" // "http://webx.powback.com/"
+                "dataPath": "./Games/" // "http://webx.powback.com/"
             };
 
            this.saveSettings( );
