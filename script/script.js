@@ -177,6 +177,13 @@ var LayoutConfig =
 
 										title: "Graph View",
 										isClosable: false,
+									},
+									{
+										type: 'component',
+										componentName: 'ThreeView',
+
+										title: "3D View",
+										isClosable: false,
 									}
 								]
 						},
@@ -218,6 +225,8 @@ function CreatePageLayout()
 	g_PageLayout.registerComponent('FileEbxTree', EbxTree);
 
 	g_PageLayout.registerComponent('FolderView', FolderView);
+
+	g_PageLayout.registerComponent("ThreeView", ThreeView);
 /*
 	g_PageLayout.registerComponent('FileTree', function (container, state)
 	{
