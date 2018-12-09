@@ -3,19 +3,30 @@ class SettingsManager
 {
     constructor()
     {
+        let DefaultSettings = 
+        {
+            "game": "Jupiter-debug", //"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
+            "gamePath": "./Games/", // "http://webx.powback.com/"
+            "hashPath": "./Hash/"
+        };
+
         this.m_Settings = JSON.parse(localStorage.getItem("webx_settings"));
 
         if( this.m_Settings == null )
         {
-            this.m_Settings = 
-            {
-                "game": "Venice", //"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
-                "dataPath": "./Games/" // "http://webx.powback.com/"
-            };
-
-           this.saveSettings( );
-
+            this.m_Settings = DefaultSettings;
         }
+        else
+        {
+            for( let Key in DefaultSettings )
+            {
+                if( this.m_Settings[Key] == null)
+                    this.m_Settings[Key] = DefaultSettings[Key];
+            }
+        }
+
+        this.saveSettings( );
+
     }
 
     saveSettings()
@@ -26,19 +37,30 @@ class SettingsManager
         localStorage.setItem('webx_settings', JSON.stringify(this.m_Settings));
     }
 
-    getGameRequestPath()
+    getSettingsPath(key)
     {
-        return this.getRootPath() + this.m_Settings["game"] + "/";
-    }
-
-    getRootPath()
-    {
-        let DataPath = this.m_Settings["dataPath"];
+        let DataPath = this.m_Settings[key];
 
         if( DataPath != "" && DataPath != null )
             return DataPath;
 
         return "./";
+    }
+
+
+    getGameRequestPath()
+    {
+        return this.getGamePath() + this.m_Settings["game"] + "/";
+    }
+
+    getGamePath()
+    {
+        return this.getSettingsPath("gamePath");
+    }
+
+    getHashPath()
+    {
+        return this.getSettingsPath("hashPath");
     }
 }
 

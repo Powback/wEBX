@@ -17,7 +17,7 @@
 	<script src="script/Cytoscape-Dagre/cytoscape-dagre.js"></script>
 
 	<script src="script/Three/three.js"></script>
-	<script src="script/Three/FirstPersonControls.js"></script>
+	<script src="script/Three/FlyControls.js"></script>
 
 
 	<script type="text/javascript" src="./script/GoldenLayout/goldenlayout.js"></script>
@@ -59,8 +59,25 @@
 
 <body>
 
+	<div id="toolbar">
+		<div id="toolbarLeft">
+			<ul id="menubar">
+				<li>
+					<div>File</div>
+					<ul>
+						<li><div onclick="signals.createGroupRequested.dispatch()">Add Group</div></li>
+						<li class="ui-widget-seperator"></li>
+						<li><div onclick="editor.ui.OpenClearDialog()">New Project</div></li>
+						<li><div onclick="editor.ui.OpenSaveDialog()">Save</div></li>
+						<li><div onclick="editor.ui.OpenLoadDialog()">Load</div></li>
+						<li><div onclick="editor.ui.OpenReloadDialog()">Reset collision</div></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+	</div>
 	<div id="page">
-
+	</div>
 
 		<!--
 		<div id="NavigationWrapper">
@@ -91,7 +108,6 @@
 
 
 
-	</div>
 </body>
 
 </html>

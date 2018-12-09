@@ -19,7 +19,7 @@ class HashManager
     {
         $.ajax({
 			context: this,
-			url: s_SettingsManager.getRootPath() + "Hash/eventHashes.json",
+			url: s_SettingsManager.getHashPath() + "Hash/eventHashes.json",
 			dataType: "json",
             success: function(response) 
             {
@@ -29,7 +29,7 @@ class HashManager
 		});
 		$.ajax({
 			context: this,
-			url: s_SettingsManager.getRootPath() + "Hash/assetHashes.json",
+			url: s_SettingsManager.getHashPath() + "Hash/assetHashes.json",
 			dataType: "json",
             success: function(response) 
             {
@@ -39,7 +39,7 @@ class HashManager
 		});
 		$.ajax({
 			context: this,
-			url: s_SettingsManager.getRootPath() + "Hash/InterfaceIDs.json",
+			url: s_SettingsManager.getHashPath() + "Hash/InterfaceIDs.json",
 			dataType: "json",
             success: function(response) 
             {

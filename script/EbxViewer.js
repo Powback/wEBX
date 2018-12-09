@@ -477,7 +477,6 @@ function HandleReference(instance, direct, directType)
 
 	if (Instance != null)
 	{
-		content += ""
 
 		//content += BuildInstance(loadedPartitions[partitionGuid][instanceGuid]);
 		content += Instance["$type"] +

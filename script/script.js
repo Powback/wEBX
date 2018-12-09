@@ -202,9 +202,19 @@ var LayoutConfig =
 
 let g_PageLayout = null;
 
+let g_GoldenLayoutElement = null;
+
 
 function CreatePageLayout()
 {
+
+	let Page = $('#page');
+
+
+	g_GoldenLayoutElement = $(document.createElement("div"));
+	g_GoldenLayoutElement.attr('id', "GoldenLayoutContainer");
+
+	Page.append(g_GoldenLayoutElement);
 
 /*
 	let SavedState = localStorage.getItem('PageLayoutConfig');
@@ -213,7 +223,7 @@ function CreatePageLayout()
 		g_PageLayout = new GoldenLayout(JSON.parse(SavedState), $('#page'));
 	else
 	*/
-		g_PageLayout = new GoldenLayout(LayoutConfig, $('#page'));
+		g_PageLayout = new GoldenLayout(LayoutConfig, "#GoldenLayoutContainer");
 
 	g_PageLayout.on('stateChanged', function ()
 	{
@@ -341,7 +351,7 @@ $(window).on('hashchange', function (e)
 
 $(window).resize(function () 
 {
-	g_PageLayout.updateSize($(window).width(), $(window).height());
+	g_PageLayout.updateSize();
 });
 
 

@@ -48,22 +48,35 @@ table {
 }
 
 
-html{
-    min-height:100%;/* make sure it is at least as tall as the viewport */
-    position:relative;
-}
-body{
-	height:100%; /* force the BODY element to match the height of the HTML element */
+html, body{
+	min-height: 100% !important;
+	height: 100%;
 }
 
 #page {
-	width: 100vw;
-	height: 100vh;
+	margin: 0;
 	padding: 0;
-	font-family: monospace;
-	display: flex;
-	position: relative;
+	width: 100%;
+	height: calc( 100% - 30px );
+	overflow: hidden;
+	font-family: sans-serif;
 }
+
+#toolbar 
+{
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 30px;
+	background-color: rgba(34, 34, 34, 0.8);
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px solid black;
+}
+#toolbarLeft, #toolbarCenter, #toolbarRight {
+	display: flex;
+}
+
 #NavigationWrapper {
 	display: inline-block;
     color: #fff;
@@ -316,4 +329,10 @@ th
 	height: 100%;
 
 	background-color: blue;
+}
+
+#GoldenLayoutContainer
+{
+	width: 100%;
+	height: 100%;
 }
