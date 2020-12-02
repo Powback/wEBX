@@ -22,7 +22,7 @@ function DisplayPartition(partition, instanceGuid)
 	{
 		if (element["$guid"] == instanceGuid)
 		{
-			$('#Current').append(/*s_EbxViewer.*/BuildInstance(partition['$guid'], partition['$primaryInstance']));
+			$('#Current').append(g_EbxViewer.BuildInstance(partition['$guid'], partition['$primaryInstance']));
 		} else
 		{
 			$(container).append('<li>' + element['$type'] + '</li>');
@@ -44,10 +44,10 @@ function LoadInstance(partitionGuid, instanceGuid)
 
 	currentPartition = Blueprint["$guid"];
 
+	let s_Element = document.getElementById("Current");
 
-	$("#Current").html("");
-	$('#Current').append(/*s_EbxViewer.*/BuildInstance(partitionGuid,
-		instanceGuid));
+	if( s_Element != null)
+		s_Element.innerHTML = g_EbxViewer.BuildInstance(partitionGuid, instanceGuid);
 
 	LoadGraphInstance(Blueprint);
 }
@@ -292,9 +292,61 @@ function CreatePageLayout()
 	g_PageLayout.init();
 }
 
+
+function CreateToolbar()
+{
+	let s_MenuBar = document.getElementById("menubar");
+
+	if (s_MenuBar == null)
+		return;
+
+	{
+		let s_GameSelect = document.createElement("select");
+
+		s_GameSelect.onchange = function()
+		{
+			s_SettingsManager.m_Settings["game"] = this.value;
+
+			s_SettingsManager.saveSettings();
+
+			s_EbxManager.LoadGuidTable();
+		};
+
+		let s_Options = [
+			"Venice", 
+			"Warsaw", 
+			"Tunguska",
+			"Casablanca",
+			"Jupiter-debug"
+		];
+
+		for(let s_Key in s_Options)
+		{
+			let s_Value = s_Options[s_Key];
+
+			let s_Option = document.createElement("option");
+
+			s_Option.innerText = s_Value;
+			s_Option.value = s_Value;
+
+
+			s_GameSelect.appendChild(s_Option);
+		}
+
+		s_GameSelect.value = s_SettingsManager.getGame();
+
+		s_MenuBar.appendChild(s_GameSelect);
+
+	}
+}
+
 function Load() 
 {
 	CreatePageLayout();
+
+	CreateToolbar();
+
+	
 
 	s_MessageSystem.RegisterEventHandler("OnFileSelected", function (data)
 	{
@@ -386,7 +438,7 @@ $(document).on('click', '.ref h1', function ()
 		if (partitionGuid != null && instanceGuid != null && loaded == false)
 		{
 			$(this).parent().addClass("loaded");
-			$(this).parent().html(HandleReferencePost(partitionGuid, instanceGuid, parentPartition));
+			$(this).parent().html(g_EbxViewer.HandleReferencePost(partitionGuid, instanceGuid, parentPartition));
 
 		}
 

@@ -19,7 +19,8 @@ class HashManager
     {
         $.ajax({
 			context: this,
-			url: s_SettingsManager.getHashPath() + "Hash/eventHashes.json",
+			url: s_SettingsManager.getHashPath() + "eventHashes.json",
+			async: false,
 			dataType: "json",
             success: function(response) 
             {
@@ -29,7 +30,8 @@ class HashManager
 		});
 		$.ajax({
 			context: this,
-			url: s_SettingsManager.getHashPath() + "Hash/assetHashes.json",
+			url: s_SettingsManager.getHashPath() + "assetHashes.json",
+			async: false,
 			dataType: "json",
             success: function(response) 
             {
@@ -39,7 +41,8 @@ class HashManager
 		});
 		$.ajax({
 			context: this,
-			url: s_SettingsManager.getHashPath() + "Hash/InterfaceIDs.json",
+			url: s_SettingsManager.getHashPath() + "InterfaceIDs.json",
+			async: false,
 			dataType: "json",
             success: function(response) 
             {
@@ -80,6 +83,39 @@ class HashManager
 		
 		this.m_UnknownHashes[hash] = true;
 		return hash;
+	}
+
+	ForceGetHash(hash) 
+	{
+		if (hash == 0)
+			return null;
+
+
+		if (this.m_EventHashes[hash] != null) 
+		{
+			return this.m_EventHashes[hash];
+			//return "[Event] " + this.m_EventHashes[hash];
+		}
+
+		if (this.m_KnownIDs[hash] != null) 
+		{
+			return this.m_KnownIDs[hash];
+			//return "[Instance] " + this.m_KnownIDs[hash];
+		}
+		
+		if (this.m_AssetHashes[hash] != null) 
+		{
+			return this.m_AssetHashes[hash];
+			//return "[Asset] " + this.m_AssetHashes[hash];
+		}
+		
+		if (this.m_InterfaceIDs[hash] != null) 
+		{
+			return "(" + this.m_InterfaceIDs[hash] + ")" + hash;
+		}
+		
+		this.m_UnknownHashes[hash] = true;
+		return null;
 	}
 
 

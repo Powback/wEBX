@@ -1,6 +1,6 @@
 
 // Types that we can render directly.
-var simpleTypes = {
+var g_SimpleTypes = {
 	"String": 1,
 	"CString": 1,
 
@@ -38,67 +38,66 @@ var simpleTypes = {
 	"MathOp": 1
 }
 
-var advancedTypes =
+var g_AdvancedTypes =
 {
 	"Vec2": ParseVec2,
 	"Vec3": ParseVec3,
 	"Vec4": ParseVec4,
 
-	"GUID": true,
-	"Guid": true,
+	//"GUID": true,
+	//"Guid": true,
 
-	"SHA1": true,
-	"Sha1": true,
+	//"SHA1": true,
+	//"Sha1": true,
 
-	"FileRef": true,
-	"ResourceRef": true,
+	//"FileRef": true,
+	//"ResourceRef": true,
 	"LinearTransform": ParseLinearTransform,
-	"EventSpec": true,
-	"DynamicEvent": true
+	//"EventSpec": true,
+	//"DynamicEvent": true
 }
 
-function stringToBytes(str) 
+
+
+function StringToUInt8(string)
 {
-	var ch, st, re = [];
-	for (var i = 0; i < str.length; i++) 
-	{
-		ch = str.charCodeAt(i);  // get char 
-		st = [];                 // set up "stack"
-		do 
-		{
-			st.push(ch & 0xFF);  // push byte to stack
-			ch = ch >> 8;          // shift value down by 1 byte
-		}
-		while (ch);
-		// add stack contents to result
-		// done because chars have "wrong" endianness
-		re = re.concat(st.reverse());
-	}
-	// return an array of bytes
-	return re;
+	var DataArray = new Uint8Array(string.length);
+
+	for (var i = 0; i < string.length; i++) 
+		DataArray[i] = string.charCodeAt(i);
+}
+
+function Uint8ArrayToString( array )
+{
+	var Result = "";
+
+	for (var i = 0; i < array.length; i++) 
+		Result += String.fromCharCode(array[i]);
+
+	return Result;
 }
 
 function DecryptEEString(inputString, guidString, offset) 
 {
 	if (guidString.length == 0)
-		return "";
+		return null;
 
 	if (inputString.length == 0)
-		return "";
+		return null;
 
 
-	var result = "";
+	var result = new Uint8Array(inputString.length);
 
 	for (var i = 0; i < inputString.length; i++) 
 	{
 		var GuidIndex = (i + offset) % guidString.length;
 
-		var InputStringChar = inputString.charCodeAt(i);
-		var InputGuidChar = guidString.charCodeAt(GuidIndex);
+		var InputStringChar = inputString[i];
+		var InputGuidChar = guidString[GuidIndex];
 
 		var Char = InputStringChar - InputGuidChar + 0xFF;
 
-		result += String.fromCharCode((Char % 0xFF) + 1);
+		result[i] = ((Char % 0xFF) + 1);
 	}
 
 	return result;
@@ -135,18 +134,22 @@ var g_TypeFieldHandlers =
 		if ((classInstance["$fields"]["Flags"]["$value"] & 0x100) == 0)
 			GuidString = "00000000-0000-0000-0000-000000000000";
 
-		var String1 = DecryptEEString(classInstance["$fields"]["In"]["$value"], GuidString, GuidString.charCodeAt(12)); // classInstance["$fields"]["In"]["$value"]
 
-		var DecryptedString = DecryptEEString(String1, "xI&O45@3HUhgdfI!I45u&dhs@9U35df3!56IYOhdfI&31@48*56U!uiH)s+e&f-y", GuidString.charCodeAt(20))
+		var ClassDataArray = StringToUInt8(classInstance["$fields"]["In"]["$value"]);
+		var GuidDataArray = StringToUInt8(GuidString);
+
+		var String1 = DecryptEEString(ClassDataArray, GuidDataArray, GuidString.charCodeAt(12)); // classInstance["$fields"]["In"]["$value"]
+
+		var DecryptedString = DecryptEEString(String1, StringToUInt8("xI&O45@3HUhgdfI!I45u&dhs@9U35df3!56IYOhdfI&31@48*56U!uiH)s+e&f-y"), GuidString.charCodeAt(20))
 
 
-		console.log("String1: " + String1);
+		console.log("String1: " + Uint8ArrayToString(String1));
 
-		console.log("DecryptedString: " + DecryptedString);
+		console.log("DecryptedString: " + Uint8ArrayToString(DecryptedString));
 
 		//console.log("FindalSize: " + (Math.floor( fieldInstance["$value"].length / 2) + ( fieldInstance["$value"].length % 2 ) ) );
 
-		return "In-Decrypted: " + DecryptedString;
+		return "In-Decrypted: " + Uint8ArrayToString(DecryptedString);
 	},
 	"SFBMEEntityData": function (classInstance, fieldInstance, fieldName)
 	{
@@ -155,14 +158,17 @@ var g_TypeFieldHandlers =
 
 		var GuidString = classInstance["$guid"];
 
-		var String1 = DecryptEEString(fieldInstance["$value"], GuidString, GuidString.charCodeAt(12));
+		var ClassDataArray = StringToUInt8(fieldInstance["$value"]);
+		var GuidDataArray = StringToUInt8(GuidString);
 
-		var DecryptedString = DecryptEEString(String1, "xI&O45@3HUhgdfI!I45u&dhs@9U35df3!56IYOhdfI&31@48*56U!uiH)s+e&f-y", GuidString.charCodeAt(20))
+		var String1 = DecryptEEString(ClassDataArray, GuidDataArray, GuidString.charCodeAt(12));
+
+		var DecryptedString = DecryptEEString(String1, StringToUInt8("xI&O45@3HUhgdfI!I45u&dhs@9U35df3!56IYOhdfI&31@48*56U!uiH)s+e&f-y"), GuidString.charCodeAt(20))
 
 
-		console.log("DecryptedString: " + DecryptedString);
+		console.log("DecryptedString: " + Uint8ArrayToString(DecryptedString));
 
-		return fieldName + "-Decrypted: " + DecryptedString;
+		return fieldName + "-Decrypted: " + Uint8ArrayToString(DecryptedString );
 	}
 
 }
@@ -177,23 +183,24 @@ class EbxViewer
 		this.m_TypeHandlers = {};
 	}
 
-	addToCache(key, data)
+	AddToCache(key, data)
 	{
 		this.m_EbxCache[key] = data;
 	}
 
-	getFromCache(key)
+	GetFromCache(key)
 	{
 		return this.m_EbxCache[key]
 	}
 
 	BuildInstance(partitionGuid, instanceGuid, parentPartition = null)
 	{
-		if (this.getFromCache(partitionGuid + instanceGuid) != null)
+		let s_Cached = this.GetFromCache(partitionGuid + instanceGuid)
+		if (s_Cached != null)
 		{
 			console.log("Using cached ebx: [partition | instance]" + partitionGuid + " | " + instanceGuid);
 
-			return this.getFromCache(partitionGuid + instanceGuid);
+			return s_Cached;
 		}
 
 		var Instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid)
@@ -201,7 +208,7 @@ class EbxViewer
 		if (Instance == null)
 			return null;
 
-
+		let content = "";
 
 
 		content += `<h1 class="${(partitionGuid == parentPartition) ? "localRef" : "remoteRef"}">
@@ -211,7 +218,7 @@ class EbxViewer
 
 		content += `<div class="GuidReferences">
 
-						<label>Partition: </label>' +
+						<label>Partition: </label>
 						<div class="guidReference">${partitionGuid.toUpperCase()}</div>
 
 						<label>Instance: </label>
@@ -219,63 +226,93 @@ class EbxViewer
 
 					</div>`;
 
+		if (g_TypeFieldHandlers[Instance["$type"]] != null)
+			current += g_TypeFieldHandlers[Instance["$type"]](Instance)
+
 		content += `<ul type="first">
-					${(this.m_TypeHandlers[Instance["$type"]] != null) ? this.m_TypeHandlers[Instance["$type"]]() : ""}
-					${Array.from(Instance["$fields"], ([key, value]) => this.HandleField()).join('')}
-					</ul>`;
+					${(this.m_TypeHandlers[Instance["$type"]] != null) ? this.m_TypeHandlers[Instance["$type"]]() : ""}`;
+
+		for (let FieldName in Instance["$fields"])
+			content += this.HandleField(Instance["$fields"][FieldName], FieldName);
+					
+					
+		content +=`</ul>`;
 
 
 
-		this.addToCache(partitionGuid + instanceGuid, content);
+		this.AddToCache(partitionGuid + instanceGuid, content);
 
 		return content;
 	}
 
 
-	HandleField(instance, field = null, subField = false) 
+	HandleField(instance, field = null, subField = false, includeType = false) 
 	{
+		if (instance == null)
+			return "";
+
+
 		var content = "";
 
-		content += `<li class="${(instance["$array"] != null) ? "minimized" : ""}">
-						<field class="${subfield ? "subField" : ""}">${field}</field>: - <type>${instance["$type"]}</type>`;
+		var s_TypeElement = "";
+		if (includeType && instance["$type"] != null)
+			s_TypeElement = `<type class="aligned">${instance["$type"]}</type> `;
+
+
+		content += 
+`<li class="${(instance["$array"] != null) ? "minimized" : ""}">
+	${s_TypeElement}`;
+
+		if( field != null)
+			content += `<field class="${subField ? "subField" : ""}">${field}</field>: `;
 
 
 		if (instance["$array"] != null) // Handle array
 		{
 			content += ":";
-			content += HandleArray(instance);
+			content += this.HandleArray(instance);
 		}
 		else if (instance["$ref"] != null) // Handle reference
 		{
-			content += HandleReference(instance);
+			content += this.HandleReference(instance);
 		}
-		else if (instance["$type"] != null && simpleTypes[instance["$type"]]) // Handle simple
+		else if (instance["$type"] != null && g_SimpleTypes[instance["$type"]]) // Handle simple
 		{
-			content += HandleSimple(instance["$value"], instance["$type"]);
+			content += this.HandleSimple(instance["$value"], instance["$type"]);
 		}
-		else if (instance["$type"] != null && advancedTypes[instance["$type"]] != null) // Handle advanced
+		else if (instance["$type"] != null && g_AdvancedTypes[instance["$type"]] != null) // Handle advanced
 		{
-			content += HandleAdvanced(instance["$value"], instance["$type"]);
+			content += this.HandleAdvanced(instance["$value"], instance["$type"]);
 		}
 		else if (instance["$enum"] != null)
 		{
-			content += HandleEnum(instance["$enumValue"]);
+			content += this.HandleEnum(instance["$enumValue"]);
 		}
-		else if (typeof instance == "string" || instance instanceof String)
-			content += instance;
+		else if ( typeof(instance) == "string" || 
+				  instance instanceof String || 
+				  typeof(instance) == "number" || 
+				  instance instanceof Number)
+			content += this.HandleSimple(instance, null);
 		else 
 		{
 			//Subfield
 			if (instance["$value"] != null)
 			{
+				content += `<label>${instance["$type"]}</label>`;
+
 				content += this.HandleField(instance["$value"], null, true); //
 			}
 			else
 			{
 
-				content += `<ul type="2nd">
-								${Array.from(instance, ([key, value]) => this.HandleField(value, key)).join('')}
-							</ul>`;
+				content += `<ul type="2nd">`;
+
+				for (let key in instance)
+				{
+					content += this.HandleField(instance[key], key)
+				}
+
+				content += `</ul>`;
 
 			}
 		}
@@ -289,12 +326,209 @@ class EbxViewer
 		return content;
 	}
 
+	/*
+	HandleSubField(instance)
+	{
+		var content = "";
+		if (instance["$value"] != null)
+		{
+			content += this.HandleField(instance["$value"], null, false); //
+		}
+		else
+		{
+			//if (instance["$type"] == null)
+			//	return;
 
+			content += '<ul type="2nd">';
+
+			for( let key in instance)
+				content += HandleField(instance[key], subField);
+
+			content += "</ul>";
+		}
+		return content;
+	}
+	*/
+
+	HandleReference(instance, direct, directType)
+	{
+		var content = "";
+
+		let PartitionGuid = null;
+		let InstanceGuid = null;
+
+		if (instance != null)
+		{
+
+			if (direct &&
+				instance['$partitionGuid'] != null &&
+				instance['$instanceGuid'] != null)
+			{
+				PartitionGuid = instance["$partitionGuid"];
+				InstanceGuid = instance["$instanceGuid"];
+				instance["$type"] = directType;
+			}
+			else if (instance["$value"] != null && 
+					 instance["$value"]["$partitionGuid"] != null && 
+					 instance["$value"]["$instanceGuid"] != null)
+			{
+				PartitionGuid = instance["$value"]["$partitionGuid"];
+				InstanceGuid = instance["$value"]["$instanceGuid"];
+			}
+		}
+
+		if (PartitionGuid == null || InstanceGuid == null)
+			return '<div class="ref"><nilValue>*nullRef*</nilValue></div>'
+
+		content += `<div class="ref" partitionGuid="${PartitionGuid}" 
+									instanceGuid="${InstanceGuid}" 
+									parentPartition="${currentPartition}">`;
+
+		content += `<h1 class="${(PartitionGuid == currentPartition) ? "localRef" : "remoteRef"}">`;
+
+
+
+		var Instance = s_EbxManager.FindInstance(PartitionGuid, InstanceGuid, false);
+
+		if (Instance != null)
+		{
+			content += `${Instance["$type"]}
+				</h1>
+				
+				<div class="GuidReferences">
+					<label>Partition:</label>
+					<div class="guidReference">${PartitionGuid.toUpperCase()}</div>
+				
+					<label>Instance:</label>
+					<div class="guidReference">${InstanceGuid.toUpperCase()}</div>
+				</div>`;
+
+		}
+		else
+		{
+			content += `${instance["$type"]}
+				<partitionReference>${s_EbxManager.GetPartitionGuidPath(PartitionGuid)}</partitionReference>
+				</h1>
+				
+				<div class="GuidReferences">
+					<label>Partition:</label>
+					<div class="guidReference">${PartitionGuid.toUpperCase()}</div>
+				
+					<label>Instance:</label>
+					<div class="guidReference">${InstanceGuid.toUpperCase()}</div>
+				</div>`;
+			return content;
+
+		}
+		content += '</div>';
+		return content;
+	}
+
+	HandleReferencePost(partitionGuid, instanceGuid, parentPartition)
+	{
+		var content = "";
+
+		var Instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid);
+
+		if (Instance != null)
+			content += this.BuildInstance(partitionGuid, instanceGuid, parentPartition);
+		else
+			content += "<nilValue>Failed to fetch</nilValue>";
+
+		return content;
+	}
+
+	HandleArray(instance)
+	{
+		
+
+		if (Object.values(instance['$value']).length == 0)
+			return `<nilValue>*nullArray*</nilValue> \t| ${instance["$type"]}`;
+
+		var content = "";
+
+		// array length
+		content += " <count>(" + Object.values(instance['$value']).length + ")</count>";
+
+		// Array field type
+		content += ` \t| ${instance["$type"]}`;
+
+
+		content += '<ul class="array">';
+		var i = 0;
+
+		for( let key in instance['$value'])
+		{
+			let refInstance = instance['$value'][key];
+
+			content += `<li><index>[${key}]</index>`;
+
+			if (instance["$ref"] != null) // Handle ref
+				content += this.HandleReference(refInstance, true, instance['$type']);
+			else
+				content += this.HandleField(refInstance);
+			content += "</li>";
+
+			i++;
+		}
+		content += "</ul>";
+
+		return content;
+
+	}
+
+	HandleSimple(value, type)
+	{
+		// If the value is not null or empty
+		var content = "";
+		if (g_SimpleTypes[type] != null &&
+			g_SimpleTypes[type] == 2)
+			content += `<value contenteditable="false" class="Boolean">${value}</value>`;
+		else if (g_SimpleTypes[type] != null &&
+			g_SimpleTypes[type] == 3 &&
+			s_HashManager.ForceGetHash(value) != null)
+			content += `<value class="Hash">${value} (\"${s_HashManager.ForceGetHash(value)}\")</value>`;
+		else if (value !== null)
+			content = `<value contenteditable="false" class="${type}">${value}</value>`;
+		else
+			content = `<nilValue class="${type}">0</nilValue>`;
+
+		return content;
+	}
+
+	HandleAdvanced(value, type)
+	{
+		// If the value is not null or empty
+		var content = "";
+
+		if( !value)
+			return "<nilValue>*null*</nilValue>";
+
+		if (value)
+			content = `<value class="${type}">`;
+
+		if (g_AdvancedTypes[type] != null && g_AdvancedTypes[type] != true)
+			content += g_AdvancedTypes[type](value);
+		else
+			content += value;
+
+		content += "</value>";
+		
+		return content;
+	}
+
+	HandleEnum(enumValue)
+	{
+		if (enumValue != null)
+			return `<value class="enum">${enumValue}</value>`;
+		
+		return "<nilValue>*unknownEnum*</nilValue";
+	}
 }
 
-var s_EbxViewer = new EbxViewer();
+var g_EbxViewer = new EbxViewer();
 
-
+/*
 function BuildInstance(partitionGuid, instanceGuid, parentPartition = null)
 {
 	var current = "";
@@ -314,60 +548,67 @@ function BuildInstance(partitionGuid, instanceGuid, parentPartition = null)
 	if (partitionGuid == parentPartition)
 	{
 
-		current += '<h1 class="localRef">' + Instance["$type"] + "</h1>";
-		current += '<div class="GuidReferences">' +
-			'<label>Partition:</label>' +
-			'<div class="guidReference">' + partitionGuid.toUpperCase() +
-			'</div> ' +
-			'<label>Instance: </label>' +
-			'<div class="guidReference">' + instanceGuid.toUpperCase() + '</div>' +
-			'</div>';
+		current += `<h1 class="localRef">${Instance["$type"]}</h1>`;
+/*
+current += 
+`<div class="GuidReferences">
+<label>Partition:</label>
+<div class="guidReference">${partitionGuid.toUpperCase()}
+</div> 
+<label>Instance: </label>
+<div class="guidReference">${instanceGuid.toUpperCase()}</div>
+</div>`;
+*
 	}
 	else
 	{
-		current += '<h1 class="remoteRef">' + Instance["$type"] +
-			' <partitionReference>' + s_EbxManager.GetPartitionGuidPath(partitionGuid) + '</partitionReference>' +
-			'</h1>' +
-			'<div class="GuidReferences">' +
-			'<label>Partition:</label>' +
-			'<div class="guidReference">' + partitionGuid.toUpperCase() + '</div>' +
-			'<label>Instance: </label>' +
-			'<div class="guidReference">' + instanceGuid.toUpperCase() + '</div>' +
-			'</div>';
+		current += 
+`<h1 class="remoteRef">${Instance["$type"]}
+	<partitionReference>${s_EbxManager.GetPartitionGuidPath(partitionGuid)}</partitionReference>
+</h1>`;
 	}
+
+	current += 
+`<div class="GuidReferences">
+	<label>Partition:</label>
+	<div class="guidReference">${partitionGuid.toUpperCase()}</div> 
+	<label>Instance: </label>
+	<div class="guidReference">${instanceGuid.toUpperCase()}</div>
+</div>`;
+
 	current += '<ul type="first">';
-
-	keys = Object.keys(Instance["$fields"]);
-	//keys.sort();
-
-	//keys.slice().reverse().forEach(function(k) 
-
-
-	if (g_TypeFieldHandlers[Instance["$type"]] != null)
-		current += g_TypeFieldHandlers[Instance["$type"]](Instance)
-
-	keys.forEach(function (fieldName)
 	{
-		var FieldInstance = Instance["$fields"][fieldName];
+		keys = Object.keys(Instance["$fields"]);
+
+
+		if (g_TypeFieldHandlers[Instance["$type"]] != null)
+			current += g_TypeFieldHandlers[Instance["$type"]](Instance)
+
+		keys.forEach(function (fieldName)
+		{
+			var FieldInstance = Instance["$fields"][fieldName];
 
 
 
 
-		current += HandleField(FieldInstance, fieldName);
-	});
-
+			current += HandleField(FieldInstance, fieldName);
+		});
+	}
 	current += "</ul>";
 	CurrentlyLoaded[partitionGuid + instanceGuid] = current;
 	return current;
 }
 
-function HandleField(instance, field = null, subField = false)
+function HandleField(instance, field = null, subField = false, includeType = false)
 {
 	var content = "";
 
 	if (field != null && subField == false)
 	{
-		content += '<li><type>' + instance["$type"] + '</type> <field>' + field + "</field>: ";
+		if( includeType )
+			content += `<li><type>${instance["$type"]}</type> `;
+
+		content += `<field>${field}</field>: `;
 	}
 
 	if (field != null && subField)
@@ -496,7 +737,7 @@ function HandleReference(instance, direct, directType)
 		/*
 		if (loadedPartitions[partitionGuid] == null) 
 		{
-			*/
+			*
 		content += instance["$type"] +
 			' <partitionReference>' + s_EbxManager.GetPartitionGuidPath(PartitionGuid) + '</partitionReference>' +
 			'</h1>' +
@@ -516,7 +757,7 @@ function HandleReference(instance, direct, directType)
 		} else {
 			content += "<nilValue>Failed to fetch</nilValue>";
 		}
-		*/
+		*
 
 	}
 	content += '</div>';
@@ -584,7 +825,7 @@ function HandleArray(instance)
 				content += "</li>"
 			}
 		}
-		*/
+		*
 		i++;
 	});
 	content += "</ul>";
@@ -664,6 +905,7 @@ function HandleEvent(value)
 	return content;
 
 }
+*/
 
 
 function ParseVec2(value, raw = false)

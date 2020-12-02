@@ -4,20 +4,21 @@ class EbxManager
 {
     constructor()
     {
-        this.m_GuidDictionary = {};
-        this.m_LoadedPartitions = {};
-
-        this.m_FileTree = {};
+        this.Reset();
 
         this.m_PartitionLoadedCallback = [];
         this.m_GuidDictionaryLoadedCallback = [];
     }
 
-    SetGame( name )
+    Reset()
     {
-        this.m_Game = name
+        this.m_GuidDictionary = {};
+        this.m_LoadedPartitions = {};
+
+        this.m_FileTree = {};
     }
-    
+
+
 
     AddParitionLoadedCallback( callback )
     {
@@ -127,10 +128,8 @@ class EbxManager
             error: function(xhr, status, error) 
             {
                 console.log(xhr.responseText);
-                var err = JSON.parse( xhr.responseText );
-                console.log("Failed to load partition: "  + this.m_Game + "/" + path)
+                console.log("Failed to load partition: "  + s_SettingsManager.getGameRequestPath() + "/" + path)
 
-                console.log( err )
             },
         });
     }
@@ -140,6 +139,9 @@ class EbxManager
 
     LoadGuidTable()
     {
+        this.Reset();
+
+
         console.log( "Loading guidTable \"" + s_SettingsManager.getGameRequestPath() + "guidDictionary.json" +"\"");
         $.ajax({
             context: this,
@@ -159,10 +161,9 @@ class EbxManager
             },
             error: function(xhr, status, error) 
             {
-                var err = JSON.parse(xhr.responseText);
+                console.log(xhr.responseText);
 
-                console.log("Failed to load guidDictionary.json: " + this.m_Game  + "/guidDictionary.json")
-                console.log( err )
+                console.log("Failed to load guidDictionary.json: " + s_SettingsManager.getGameRequestPath()  + "/guidDictionary.json")
             }
         });
 

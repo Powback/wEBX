@@ -2,35 +2,35 @@
 <html>
 
 <head>
-	<meta http-equiv="content-type" content="text/html" charset="UTF-16" />
+	<meta http-equiv="content-type" content="text/html" charset="UTF-8" />
 	<title>Venice EBX</title>
 	<link rel="stylesheet" type="text/css" href="style/style.css">
-	<script src="script/jquery-3.3.1.min.js"> </script>
+	<script src="script/Lib/JQuery/jquery-3.3.1.min.js"> </script>
 
 
-	<script src="script/litegraph.js"></script>
+	<script src="script/Lib/Litegraph/litegraph.js"></script>
 	<!-- <script src="https://raw.githubusercontent.com/jagenjo/litegraph.js/master/build/litegraph.js"></script>-->
 
 
-	<script src="script/Cytoscape-Dagre/cytoscape.min.js"></script>
-	<script src="script/Cytoscape-Dagre/dagre.min.js"></script>
-	<script src="script/Cytoscape-Dagre/cytoscape-dagre.js"></script>
+	<script src="script/Lib/Cytoscape-Dagre/cytoscape.min.js"></script>
+	<script src="script/Lib/Cytoscape-Dagre/dagre.min.js"></script>
+	<script src="script/Lib/Cytoscape-Dagre/cytoscape-dagre.js"></script>
 
-	<script src="script/Three/three.js"></script>
-	<script src="script/Three/FlyControls.js"></script>
-
-
-	<script type="text/javascript" src="./script/GoldenLayout/goldenlayout.js"></script>
-	<link type="text/css" rel="stylesheet" href="./script/GoldenLayout/goldenlayout-base.css" />
-	<link type="text/css" rel="stylesheet" href="./script/GoldenLayout/goldenlayout-dark-theme.css" />
+	<script src="script/Lib/Three/three.js"></script>
+	<script src="script/Lib/Three/FlyControls.js"></script>
 
 
-	<link rel="stylesheet" href="script/themes/default/style.css" />
-	<link rel="stylesheet" href="script/themes/default-dark/style.css" />
-	<script src="script/jstree.min.js"></script>
+	<script type="text/javascript" src="./script/Lib/GoldenLayout/goldenlayout.js"></script>
+	<link type="text/css" rel="stylesheet" href="./script/Lib/GoldenLayout/goldenlayout-base.css" />
+	<link type="text/css" rel="stylesheet" href="./script/Lib/GoldenLayout/goldenlayout-dark-theme.css" />
 
-	<script src="script/jquery-ui.min.js"></script>
-	<link rel="stylesheet" href="style/jquery-ui.min.css">
+
+	<link rel="stylesheet" href="script/Lib/JSTree/themes/default/style.css" />
+	<link rel="stylesheet" href="script/Lib/JSTree/themes/default-dark/style.css" />
+	<script src="script/Lib/JSTree/jstree.min.js"></script>
+
+	<script src="script/Lib/JQuery/jquery-ui.min.js"></script>
+	<link rel="stylesheet" href="script/Lib/Jquery/jquery-ui.min.css">
 
 	<script src="script/Utils.js"></script>
 
@@ -62,17 +62,7 @@
 	<div id="toolbar">
 		<div id="toolbarLeft">
 			<ul id="menubar">
-				<li>
-					<div>File</div>
-					<ul>
-						<li><div onclick="signals.createGroupRequested.dispatch()">Add Group</div></li>
-						<li class="ui-widget-seperator"></li>
-						<li><div onclick="editor.ui.OpenClearDialog()">New Project</div></li>
-						<li><div onclick="editor.ui.OpenSaveDialog()">Save</div></li>
-						<li><div onclick="editor.ui.OpenLoadDialog()">Load</div></li>
-						<li><div onclick="editor.ui.OpenReloadDialog()">Reset collision</div></li>
-					</ul>
-				</li>
+			
 			</ul>
 		</div>
 	</div>

@@ -5,7 +5,7 @@ class SettingsManager
     {
         let DefaultSettings = 
         {
-            "game": "Jupiter-debug", //"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
+            "game": "Venice", //"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
             "gamePath": "./Games/", // "http://webx.powback.com/"
             "hashPath": "./Hash/"
         };
@@ -47,6 +47,11 @@ class SettingsManager
         return "./";
     }
 
+
+    getGame()
+    {
+        return this.m_Settings["game"];
+    }
 
     getGameRequestPath()
     {

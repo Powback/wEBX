@@ -15,7 +15,7 @@ DefaultNode.prototype.onSelected = function()
 		
 	$("#PropertyViewer").html("");
 
-	$("#PropertyViewer").append(BuildInstance(this.partitionGuid, this.instanceGuid));
+	$("#PropertyViewer").append(g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid));
 
 }
 
