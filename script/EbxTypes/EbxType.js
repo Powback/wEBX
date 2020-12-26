@@ -75,7 +75,7 @@ class EbxType
 
 		for(var s_Field in this.GetFields())
 		{
-			s_FieldType.appendChild( s_Field.BuildHtml(this) );
+			s_FieldType.appendChild( s_Field.BuildHtml( this ) );
 
 		}
 		

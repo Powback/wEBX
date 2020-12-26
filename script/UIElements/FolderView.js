@@ -6,8 +6,10 @@ class FolderView
         this._state = state;
 
         this.m_Dom = $(document.createElement("div"));
-        this.m_Table = $(document.createElement("table"));
 
+        this.m_Dom.addClass("instanceTree");
+
+        this.m_Table = $(document.createElement("table"));
         this.m_Table.attr("width", "100%");
 
         this.m_Dom.append(this.m_Table);
@@ -43,9 +45,15 @@ class FolderView
     CreateTableEntry( tableData )
     {
         let entry = $(document.createElement("tr"));
+
+        entry.addClass("instanceTreeElement");
+
         let icon = $(document.createElement("i"));
         let name = $(document.createElement("td"));
         let type = $(document.createElement("td"));
+
+
+        
         entry.append(icon);
         entry.append(name);
         entry.append(type);

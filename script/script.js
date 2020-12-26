@@ -107,7 +107,7 @@ var LayoutConfig =
 		constrainDragToContainer: true,
 		reorderEnabled: true,
 		selectionEnabled: false,
-		popoutWholeStack: false,
+		popoutWholeStack: true,
 		blockedPopoutsThrowError: true,
 		closePopoutsOnUnload: true,
 		showPopoutIcon: false,
@@ -154,7 +154,7 @@ var LayoutConfig =
 										componentName: 'FolderView',
 										title: 'Instance List',
 
-										isClosable: false,
+										isClosable: true,
 
 									},
 								]
@@ -177,14 +177,14 @@ var LayoutConfig =
 
 										title: "Graph View",
 										isClosable: false,
-									},
+									}/*,
 									{
 										type: 'component',
 										componentName: 'ThreeView',
 
 										title: "3D View",
 										isClosable: false,
-									}
+									}*/
 								]
 						},
 						{
@@ -236,7 +236,7 @@ function CreatePageLayout()
 
 	g_PageLayout.registerComponent('FolderView', FolderView);
 
-	g_PageLayout.registerComponent("ThreeView", ThreeView);
+	//g_PageLayout.registerComponent("ThreeView", ThreeView);
 /*
 	g_PageLayout.registerComponent('FileTree', function (container, state)
 	{
@@ -260,12 +260,8 @@ function CreatePageLayout()
 		container.getElement().append($('<div id="Current"></div>'));
 	});
 
-	g_PageLayout.registerComponent('EbxGraph', function (container, state)
-	{
 
-		// Append it to the DOM
-		container.getElement().append($("<canvas id='eventGraph'></canvas>"));
-	});
+	g_PageLayout.registerComponent('EbxGraph', GraphView);
 
 	g_PageLayout.registerComponent('PropertyViewer', function (container, state)
 	{
@@ -403,7 +399,8 @@ $(window).on('hashchange', function (e)
 
 $(window).resize(function () 
 {
-	g_PageLayout.updateSize();
+	if (g_PageLayout != null)
+		g_PageLayout.updateSize();
 });
 
 

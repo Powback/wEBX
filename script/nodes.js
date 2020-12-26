@@ -1,175 +1,202 @@
-function DefaultNode() 
+class DefaultNode extends LiteGraph.LGraphNode
 {
-	this.title = "DefaultNode";
-	this.shape = LiteGraph.ROUND_SHAPE;
-}
+	constructor(_title) 
+	{
+		super(_title);
 
-DefaultNode.prototype.onSelected = function() 
-{
-	console.log(this.id);
+		this.title = "DefaultNode";
+		this.shape = LiteGraph.ROUND_SHAPE;
+	}
+
+	onSelected() 
+	{
+		console.log(this.id);
 
 
-	if( this.partitionGuid == null ||
-		this.instanceGuid == null)
-		return;
-		
-	$("#PropertyViewer").html("");
+		if( this.partitionGuid == null ||
+			this.instanceGuid == null)
+			return;
+			
+		$("#PropertyViewer").html("");
 
-	$("#PropertyViewer").append(g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid));
+		$("#PropertyViewer").append(g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid));
 
-}
+	}
 
-DefaultNode.prototype.onDblClick = function(e)
-{
-	if( this.partitionGuid == null ||
-		this.instanceGuid == null)
-		return;
 
-	var Data = s_EbxManager.FindInstance( this.partitionGuid, this.instanceGuid);
+	onDblClick(e)
+	{
+		if( this.partitionGuid == null ||
+			this.instanceGuid == null)
+			return;
+	/*
+		var Data = s_EbxManager.FindInstance( this.partitionGuid, this.instanceGuid);
 
-	if( Data == null )
-		return;
+		if( Data == null )
+			return;
+			*/
 
-	//history.pushState(null, null, "#" + Data["$fields"]["Blueprint"]["$value"]["$partitionGuid"] + "&" + Data["$fields"]["Blueprint"]["$value"]["$instanceGuid"]);
-	window.location.hash = "#" + Data["$fields"]["Blueprint"]["$value"]["$partitionGuid"] + "&" + Data["$fields"]["Blueprint"]["$value"]["$instanceGuid"];
-	//window.location.reload();
-}
+		//history.pushState(null, null, "#" + Data["$fields"]["Blueprint"]["$value"]["$partitionGuid"] + "&" + Data["$fields"]["Blueprint"]["$value"]["$instanceGuid"]);
+		window.location.hash = "#" + this.partitionGuid + "&" + this.instanceGuid;
+		//window.location.reload();
+	}
+};
 
 LiteGraph.registerNodeType("basic/dummy", DefaultNode);
 
 
-
-function InputEvent() 
+class InputEvent extends LiteGraph.LGraphNode
 {
-	this.title = "InputEvent";
-	this.title_text_color = "#6F6";
+	constructor(_title) 
+	{
+		super(_title);
 
-	this.shape = LiteGraph.ROUND_SHAPE;
-}
+		this.title = "InputEvent";
+		//this.title_text_color = "#6F6";
 
-InputEvent.prototype.onDrawBackground = function(ctx)
-{
-	this.boxcolor = "#6F6";
-}
+		this.boxcolor = this.bgcolor = "#597778";
 
-InputEvent.prototype.onSelected = function() 
-{
-	console.log(this.id);
-}
+		this.shape = LiteGraph.ROUND_SHAPE;
+	}
+
+	onDrawBackground(ctx)
+	{
+	}
+
+	onSelected() 
+	{
+		console.log(this.id);
+	}
+};
 LiteGraph.registerNodeType("basic/InputEvent", InputEvent);
 
 
-function OutputEvent() 
+class OutputEvent extends LiteGraph.LGraphNode
 {
-	this.title = "OutputEvent";
-	this.title_text_color = "#2F2";
+	constructor(_title) 
+	{
+		super(_title);
 
-	this.shape = LiteGraph.ROUND_SHAPE;
-}
+		this.title = "OutputEvent";
+		//this.title_text_color = "#2F2";
 
-OutputEvent.prototype.onDrawBackground = function(ctx)
-{
-	this.boxcolor = "#2F2";
-}
+		this.boxcolor = this.bgcolor = "#265355";
 
-OutputEvent.prototype.onSelected = function() 
-{
-	console.log(this.id);
-}
+		this.shape = LiteGraph.ROUND_SHAPE;
+	}
+
+	onDrawBackground(ctx)
+	{
+	}
+
+	onSelected() 
+	{
+		console.log(this.id);
+	}
+};
 LiteGraph.registerNodeType("basic/OutputEvent", OutputEvent);
 
 
 
-
-
-function InputLink() 
+class InputLink extends LiteGraph.LGraphNode
 {
+	constructor(_title) 
+	{
+		super(_title);
 
-	this.title = "InputLink";
-	this.title_text_color = "#F66";
+		this.title = "InputLink";
 
-	this.shape = LiteGraph.ROUND_SHAPE;
+		this.boxcolor = this.bgcolor = "#785959";
 
-}
+		this.shape = LiteGraph.ROUND_SHAPE;
 
-InputLink.prototype.onDrawBackground = function(ctx)
-{
-	this.boxcolor = "#F66";
-}
+	}
 
-InputLink.prototype.onSelected = function() 
-{
-	console.log(this.id);
-}
+	onDrawBackground(ctx)
+	{
+	}
+
+	onSelected() 
+	{
+		console.log(this.id);
+	}
+};
 LiteGraph.registerNodeType("basic/InputLink", InputLink);
 
 
-
-function OutputLink() 
+class OutputLink extends LiteGraph.LGraphNode
 {
-	this.title = "OutputEvent";
-	this.boxcolor = "red";
+	constructor(_title) 
+	{
+		super(_title);
 
-	this.shape = LiteGraph.ROUND_SHAPE;
+		this.title = "OutputLink";
+		this.bgcolor = this.boxcolor = "#552626";
 
-}
 
-OutputLink.prototype.onAdded = function(ctx)
-{
-	this.boxcolor = "red";//"#F22";
-}
+		this.shape = LiteGraph.ROUND_SHAPE;
 
-OutputLink.prototype.onSelected = function() 
-{
-	console.log(this.id);
-}
+	}
+
+	onAdded(ctx)
+	{
+	}
+
+	onSelected() 
+	{
+		console.log(this.id);
+	}
+};
 LiteGraph.registerNodeType("basic/OutputLink", OutputLink);
 
 
 
 
-
-function InputField() 
+class InputField extends LiteGraph.LGraphNode
 {
+	constructor(_title) 
+	{
+		super(_title);
 
-	this.title = "InputField";
-	this.boxcolor = "#66F";
+		this.title = "InputField";
+		this.bgcolor = this.boxcolor = "#787259";
 
-	this.shape = LiteGraph.ROUND_SHAPE;
 
-}
+		this.shape = LiteGraph.ROUND_SHAPE;
 
-InputField.prototype.onDrawBackground = function(ctx)
-{
-	this.boxcolor = "#22F";
-}
+	}
 
-InputField.prototype.onSelected = function() 
-{
-	console.log(this.id);
-}
+
+	onSelected() 
+	{
+		console.log(this.id);
+	}
+};
 LiteGraph.registerNodeType("basic/InputField", InputField);
 
-
-function OutputField() 
+class OutputField extends LiteGraph.LGraphNode
 {
+	constructor(_title) 
+	{
+		super(_title);
 
-	this.title = "InputField";
-	this.boxcolor = "#22F";
+		this.title = "OutputField";
+		this.bgcolor = this.boxcolor = "#554c26";
 
-	this.shape = LiteGraph.ROUND_SHAPE;
+		this.shape = LiteGraph.ROUND_SHAPE;
 
-}
+	}
 
-OutputField.prototype.onDrawBackground = function(ctx)
-{
-	this.boxcolor = "#22F";
-}
+	onDrawBackground(ctx)
+	{
+		//this.boxcolor = "#22F";
+	}
 
-OutputField.prototype.onSelected = function() 
-{
-	console.log(this.id);
-}
+	onSelected() 
+	{
+		console.log(this.id);
+	}
+};
 LiteGraph.registerNodeType("basic/OutputField", OutputField);
 
 

@@ -295,29 +295,34 @@ class EbxViewer
 			content += this.HandleSimple(instance, null);
 		else 
 		{
-			//Subfield
+			//if this is a ValueType, we fix it
 			if (instance["$value"] != null)
 			{
 				content += `<label>${instance["$type"]}</label>`;
 
+				content += `<ul type="2nd">`;
+
 				content += this.HandleField(instance["$value"], null, true); //
+
+				content += `</ul>`;
 			}
 			else
 			{
 
-				content += `<ul type="2nd">`;
-
+				//content += `<ul type="2nd">`;
+				//just do it, i think array uses this
 				for (let key in instance)
 				{
 					content += this.HandleField(instance[key], key)
 				}
 
-				content += `</ul>`;
+				//content += `</ul>`;
 
 			}
 		}
 
-		content += "</li>"
+		content += "</li>";
+
 		if (content.indexOf("undefined") != -1)
 		{
 			console.log("Something went wrong. Debug!");
@@ -463,10 +468,14 @@ class EbxViewer
 
 			content += `<li><index>[${key}]</index>`;
 
+
+			content += `<ul type="2nd">`;
 			if (instance["$ref"] != null) // Handle ref
 				content += this.HandleReference(refInstance, true, instance['$type']);
 			else
 				content += this.HandleField(refInstance);
+			
+			content += `</ul>`;
 			content += "</li>";
 
 			i++;
@@ -528,6 +537,384 @@ class EbxViewer
 
 var g_EbxViewer = new EbxViewer();
 
+/*
+function BuildInstance(partitionGuid, instanceGuid, parentPartition = null)
+{
+	var current = "";
+	if (CurrentlyLoaded[partitionGuid + instanceGuid] != null)
+	{
+		console.log("Using previously built instance:" + partitionGuid + instanceGuid);
+		return CurrentlyLoaded[partitionGuid + instanceGuid];
+	}
+	console.log("Building instance: " + partitionGuid + " | " + instanceGuid);
+
+	var Instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid)
+
+	if (Instance == null)
+		return "*null*"
+
+	// add TypeName 
+	if (partitionGuid == parentPartition)
+	{
+
+		current += `<h1 class="localRef">${Instance["$type"]}</h1>`;
+/*
+current += 
+`<div class="GuidReferences">
+<label>Partition:</label>
+<div class="guidReference">${partitionGuid.toUpperCase()}
+</div> 
+<label>Instance: </label>
+<div class="guidReference">${instanceGuid.toUpperCase()}</div>
+</div>`;
+*
+	}
+	else
+	{
+		current += 
+`<h1 class="remoteRef">${Instance["$type"]}
+	<partitionReference>${s_EbxManager.GetPartitionGuidPath(partitionGuid)}</partitionReference>
+</h1>`;
+	}
+
+	current += 
+`<div class="GuidReferences">
+	<label>Partition:</label>
+	<div class="guidReference">${partitionGuid.toUpperCase()}</div> 
+	<label>Instance: </label>
+	<div class="guidReference">${instanceGuid.toUpperCase()}</div>
+</div>`;
+
+	current += '<ul type="first">';
+	{
+		keys = Object.keys(Instance["$fields"]);
+
+
+		if (g_TypeFieldHandlers[Instance["$type"]] != null)
+			current += g_TypeFieldHandlers[Instance["$type"]](Instance)
+
+		keys.forEach(function (fieldName)
+		{
+			var FieldInstance = Instance["$fields"][fieldName];
+
+
+
+
+			current += HandleField(FieldInstance, fieldName);
+		});
+	}
+	current += "</ul>";
+	CurrentlyLoaded[partitionGuid + instanceGuid] = current;
+	return current;
+}
+
+function HandleField(instance, field = null, subField = false, includeType = false)
+{
+	var content = "";
+
+	if (field != null && subField == false)
+	{
+		if( includeType )
+			content += `<li><type>${instance["$type"]}</type> `;
+
+		content += `<field>${field}</field>: `;
+	}
+
+	if (field != null && subField)
+		content += ":<subfield>" + field + "</subfield>";
+
+	if (instance["$array"] != null) // Handle array
+	{
+		content = '<li class="minimized"><type>' + instance["$type"] + '</type> <field>' + field + "</field>: ";
+		content += HandleArray(instance);
+		content += "</li>"
+	}
+	else if (instance["$ref"] != null) // Handle reference
+	{
+		content += HandleReference(instance);
+	}
+	else if (instance["$type"] != null && simpleTypes[instance["$type"]]) // Handle simple
+	{
+		content += HandleSimple(instance["$value"], instance["$type"]);
+	}
+	else if (instance["$type"] != null && advancedTypes[instance["$type"]] != null) // Handle advanced
+	{
+		content += HandleAdvanced(instance["$value"], instance["$type"]);
+	}
+	else if (instance["$enum"] != null)
+	{
+		content += HandleEnum(instance["$enumValue"]);
+	}
+	else if (typeof instance == "string" || instance instanceof String)
+		content += instance;
+	else if (typeof instance == "number" || instance instanceof Number)
+		content += instance;
+	else
+		content += HandleSubField(instance);
+
+
+	if (content.indexOf("undefined") != -1)
+	{
+		console.log("Something went wrong. Debug!");
+	}
+	return content;
+}
+
+
+function HandleSubField(instance)
+{
+	var content = "";
+	if (instance["$value"] != null)
+	{
+		content += HandleField(instance["$value"], null, true); //
+	}
+	else
+	{
+		//if (instance["$type"] == null)
+		//	return;
+
+		content += '<ul type="2nd">';
+
+		Object.keys(instance).forEach(function (subField)
+		{
+			content += HandleField(this[subField], subField);
+		}, instance);
+		content += "</ul>";
+	}
+	return content;
+}
+
+function HandleReference(instance, direct, directType)
+{
+	var content = "";
+
+	if (instance != null)
+	{
+
+		if (direct &&
+			instance['$partitionGuid'] != null &&
+			instance['$instanceGuid'] != null)
+		{
+			var PartitionGuid = instance["$partitionGuid"];
+			var InstanceGuid = instance["$instanceGuid"];
+			instance["$type"] = directType;
+		}
+		else
+		{
+			if (instance["$value"] != null && instance["$value"]["$partitionGuid"] != null && instance["$value"]["$instanceGuid"] != null)
+			{
+				var PartitionGuid = instance["$value"]["$partitionGuid"];
+				var InstanceGuid = instance["$value"]["$instanceGuid"];
+			}
+		}
+	}
+
+	if (PartitionGuid == null || InstanceGuid == null)
+	{
+		return '<div class="ref" ' + "><nilValue>*nullRef*</nilValue></div>"
+	}
+
+	content += `<div class="ref" partitionGuid="${PartitionGuid}" 
+								 instanceGuid="${InstanceGuid}" 
+								 parentPartition="${currentPartition}">`;
+
+	content += `<h1 class="${(PartitionGuid == currentPartition) ? "localRef" : "remoteRef"}">`;
+
+
+
+
+	var Instance = s_EbxManager.FindInstance(PartitionGuid, InstanceGuid, false);
+
+	if (Instance != null)
+	{
+
+		//content += BuildInstance(loadedPartitions[partitionGuid][instanceGuid]);
+		content += Instance["$type"] +
+			'</h1>' +
+			'<div class="GuidReferences">' +
+			'<label>Partition:</label>' +
+			'<div class="guidReference">' + PartitionGuid.toUpperCase() + '</div>' +
+			' ' +
+			'<div class="GuidReferences">' +
+			'<label>Instance:</label>' +
+			'<div class="guidReference">' + InstanceGuid.toUpperCase() + '</div>' +
+			'</div>';
+
+	}
+	else
+	{
+		/*
+		if (loadedPartitions[partitionGuid] == null) 
+		{
+			*
+		content += instance["$type"] +
+			' <partitionReference>' + s_EbxManager.GetPartitionGuidPath(PartitionGuid) + '</partitionReference>' +
+			'</h1>' +
+			'<div class="GuidReferences">' +
+			'<label>Partition:</label>' +
+			'<div class="guidReference">' + PartitionGuid.toUpperCase() + '</div>' +
+			' <div class="GuidReferences">' +
+			'<label>Instance:</label>' +
+			'<div class="guidReference">' + InstanceGuid.toUpperCase() + '</div>' +
+			'</div>';
+		return content;
+		/*
+		}
+		if (loadedPartitions[partitionGuid][instanceGuid] != null) {
+			content += loadedPartitions[partitionGuid][instanceGuid]["$type"] + ' <partitionReference>' + TryGetPartitionName(partitionGuid) + '</partitionReference></h1><div class="GuidReferences"><label>Partition:</label><div class="guidReference">' + partitionGuid.toUpperCase() + '</div> <div class="GuidReferences"><label>Instance:</label><div class="guidReference">' + instanceGuid.toUpperCase() + '</div></div>';
+			//content += BuildInstance(loadedPartitions[partitionGuid][instanceGuid])
+		} else {
+			content += "<nilValue>Failed to fetch</nilValue>";
+		}
+		*
+
+	}
+	content += '</div>';
+	return content;
+}
+
+function HandleReferencePost(partitionGuid, instanceGuid, parentPartition)
+{
+	var content = ""
+
+	var Instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid);
+
+	if (Instance != null)
+		content += BuildInstance(partitionGuid, instanceGuid, parentPartition);
+	else
+		content += "<nilValue>Failed to fetch</nilValue>";
+
+	return content;
+}
+
+function HandleArray(instance)
+{
+	var content = "";
+	content = " <count>(" + Object.values(instance['$value']).length + ")</count>";
+
+	if (Object.values(instance['$value']).length == 0)
+	{
+		return content + "<nilValue>*nullArray*</nilValue>";
+	}
+
+
+	content += '<ul class="array">';
+	var i = 1;
+	Object.values(instance['$value']).forEach(function (refInstance)
+	{
+		if (instance["$ref"] != null) // Handle ref
+		{
+			content += "<li><index>[" + i + "]</index>";
+			content += HandleReference(refInstance, true, instance['$type']);
+			content += "</li>"
+		}
+		else
+		{
+			content += "<li><index>[" + i + "]</index>";
+			content += HandleField(refInstance);
+			content += "</li>";
+		}
+		/*
+		if (instance["$ref"] != null) { // Handle ref
+			content += "<li><index>[" + i + "]</index>";
+			content += HandleReference(refInstance, true, instance['$type']);
+			content += "</li>"
+		} else { // Handle other types.
+			if (simpleTypes[instance["$type"]]) { // Handle simple
+				content += "<li><index>[" + i + "]</index>";
+				content += HandleSimple(refInstance, instance["$type"]);
+				content += "</li>"
+			} else if (advancedTypes[instance["$type"]]) { // Handle simple
+				content += "<li><index>[" + i + "]</index>";
+				content += HandleAdvanced(refInstance, instance["$type"]);
+				content += "</li>"
+			} else {
+				content += "<li><index>[" + i + "]</index>";
+				content += HandleField(refInstance)
+				content += "</li>"
+			}
+		}
+		*
+		i++;
+	});
+	content += "</ul>";
+
+	return content;
+
+}
+
+function HandleEnum(enumValue)
+{
+	if (enumValue != null)
+	{
+		return '<value class="enum">' + enumValue + "</value>";
+	}
+	else
+	{
+		return "<nilValue>*unknownEnum*</nilValue";
+	}
+}
+
+function HandleSimple(value, type)
+{
+	// If the value is not null or empty
+	var content = "";
+	if (simpleTypes[type] != null &&
+		simpleTypes[type] == 2)
+		content += '<value contenteditable="true" class="Boolean">' + value + "</value>";
+	else if (simpleTypes[type] != null &&
+		simpleTypes[type] == 3 &&
+		s_HashManager.GetHashResult(value) != null)
+		content += '<value class="Hash">' + s_HashManager.GetHashResult(value) + '</value>';
+	else if (value !== null)
+		content = '<value contenteditable="true" class="' + type + '">' + value + "</value>";
+	else
+		content = '<nilValue class="' + type + '">0</nilValue>';
+	return content;
+}
+
+function HandleAdvanced(value, type)
+{
+	// If the value is not null or empty
+	var content = "";
+
+	if (value)
+	{
+		content = '<value class="' + type + '">';
+	}
+
+	if (advancedTypes[type] != null && advancedTypes[type] != true)
+		content += advancedTypes[type](value);
+	else
+		content += value;
+
+	if (content != '<value class="' + type + '">')
+	{
+		content += "</value>"
+	}
+	else
+	{ //Value is null or empty.
+		content = "<nilValue>*null*</nilValue>";
+	}
+	return content;
+}
+
+function HandleEvent(value)
+{
+	var content = ':<subfield>EventSpec</subfield><ul type="2nd">';
+
+	content += '<li><field>Id</field><value class="EventSpec">';
+
+	if (GetHashResult([value["Id"]["$value"]]) != null)
+		content += GetHashResult([value["Id"]["$value"]]);
+	else
+		content += value["Id"]["$value"];
+
+	content += "</value></li></ul>";
+	return content;
+
+}
+*/
 
 
 function ParseVec2(value, raw = false)

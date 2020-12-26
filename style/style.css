@@ -59,7 +59,7 @@ html, body{
 	width: 100%;
 	height: calc( 100% - 30px );
 	overflow: hidden;
-	font-family: sans-serif;
+	font-family: monospace;
 }
 
 #toolbar 
@@ -298,7 +298,7 @@ value.EventSpec {
 .canvasHolder {
     width: 100%;
     height: 100%;
-    position: fixed;
+    /*position: fixed;*/
     left: 0;
     display: none;
     top: 0;
@@ -349,4 +349,15 @@ th
 {
 	width: 100%;
 	height: 100%;
+}
+
+
+.instanceTree
+{
+	color:lightgray;
+}
+
+.instanceTreeElement
+{
+	height: 3vh;
 }
