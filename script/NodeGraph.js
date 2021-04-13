@@ -260,21 +260,15 @@ function HandleConnections(MainInstance) {
 
 function HandleUIConnections(Instance) {
 	// Nodes
-
-
-	Object.values(Instance["$fields"]["Nodes"]["$value"]).forEach(function (Interface) {
-		ProcessUINode(s_EbxManager.FindInstance(Interface["$partitionGuid"],
-			Interface["$instanceGuid"]));
-
+	Object.values(Instance["$fields"]["Nodes"]["$value"]).forEach(function (NodeReference) {
+		ProcessUINode(NodeReference);
 	});
 
 
-
 	// Connections
-	Object.values(Instance["$fields"]["Connections"]["$value"]).forEach(function (Interface) {
-		ProcessUIConnection(s_EbxManager.FindInstance(Interface["$partitionGuid"],
-			Interface["$instanceGuid"]));
-
+	Object.values(Instance["$fields"]["Connections"]["$value"]).forEach(function (NodeConnection) {
+		ProcessUIConnection(s_EbxManager.FindInstance(NodeConnection["$partitionGuid"],
+			NodeConnection["$instanceGuid"]));
 	});
 }
 
@@ -368,19 +362,22 @@ function AddSpecialNode(type, id) {
 }
 
 
-function ProcessUINode(PC) {
-	if (PC == null)
+function ProcessUINode(NodeReference) {
+	var NodeInstance = s_EbxManager.FindInstance(NodeReference["$partitionGuid"],
+		NodeReference["$instanceGuid"])
+
+	if (NodeInstance == null)
 		return;
 
-	var node = AddNode(PC);
+	var node = AddNode(NodeInstance, NodeReference["$partitionGuid"]);
 
 	if (node == null) {
 		console.log("Something is wrong 2");
 		return;
 	}
 
-	if (node.findInputSlot(PC["$fields"]["Name"]["$value"]) == -1) {
-		node.addInput(PC["$fields"]["Name"]["$value"], LiteGraph.EVENT,
+	if (node.findInputSlot(NodeInstance["$fields"]["Name"]["$value"]) == -1) {
+		node.addInput(NodeInstance["$fields"]["Name"]["$value"], LiteGraph.EVENT,
 			{
 				locked: true
 			});
@@ -388,30 +385,30 @@ function ProcessUINode(PC) {
 
 
 
-	switch (PC["$type"]) {
+	switch (NodeInstance["$type"]) {
 		case "ActionNode":
-			Object.values(PC["$fields"]["Params"]["$value"]).forEach(function (object) {
+			Object.values(NodeInstance["$fields"]["Params"]["$value"]).forEach(function (object) {
 				AddInputMember(node, object);
 			});
 
-			AddOutputMember(node, "ActionKey - " + s_HashManager.GetHashResult(PC["$fields"]["ActionKey"]["$value"]));
+			AddOutputMember(node, "ActionKey - " + s_HashManager.GetHashResult(NodeInstance["$fields"]["ActionKey"]["$value"]));
 
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"],
-					PC["$fields"]["In"]["$value"]["$instanceGuid"]),
+				s_EbxManager.FindInstance(NodeInstance["$fields"]["In"]["$value"]["$partitionGuid"],
+					NodeInstance["$fields"]["In"]["$value"]["$instanceGuid"]),
 				false);
 
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(PC["$fields"]["Out"]["$value"]["$partitionGuid"],
-					PC["$fields"]["Out"]["$value"]["$instanceGuid"]),
+				s_EbxManager.FindInstance(NodeInstance["$fields"]["Out"]["$value"]["$partitionGuid"],
+					NodeInstance["$fields"]["Out"]["$value"]["$instanceGuid"]),
 				true);
 
 			break;
 
 		case "ComparisonLogicNode":
-			Object.values(PC["$fields"]["Outputs"]["$value"]).forEach(function (object) {
+			Object.values(NodeInstance["$fields"]["Outputs"]["$value"]).forEach(function (object) {
 				AddNodePort(node,
 					s_EbxManager.FindInstance(object["$partitionGuid"],
 						object["$instanceGuid"]),
@@ -420,8 +417,8 @@ function ProcessUINode(PC) {
 
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"],
-					PC["$fields"]["In"]["$value"]["$instanceGuid"]),
+				s_EbxManager.FindInstance(NodeInstance["$fields"]["In"]["$value"]["$partitionGuid"],
+					NodeInstance["$fields"]["In"]["$value"]["$instanceGuid"]),
 				false);
 
 
@@ -430,18 +427,18 @@ function ProcessUINode(PC) {
 		case "InstanceInputNode":
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(PC["$fields"]["Out"]["$value"]["$partitionGuid"],
-					PC["$fields"]["Out"]["$value"]["$instanceGuid"]),
+				s_EbxManager.FindInstance(NodeInstance["$fields"]["Out"]["$value"]["$partitionGuid"],
+					NodeInstance["$fields"]["Out"]["$value"]["$instanceGuid"]),
 				true);
 			break;
 
 		case "InstanceOutputNode":
 
-			AddInputMember(node, "Id - " + s_HashManager.GetHashResult(PC["$fields"]["Id"]["$value"]));
+			AddInputMember(node, "Id - " + s_HashManager.GetHashResult(NodeInstance["$fields"]["Id"]["$value"]));
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(PC["$fields"]["In"]["$value"]["$partitionGuid"],
-					PC["$fields"]["In"]["$value"]["$instanceGuid"]),
+				s_EbxManager.FindInstance(NodeInstance["$fields"]["In"]["$value"]["$partitionGuid"],
+					NodeInstance["$fields"]["In"]["$value"]["$instanceGuid"]),
 				false);
 			break;
 
@@ -449,29 +446,29 @@ function ProcessUINode(PC) {
 
 
 
-			AddInputMember(node, "InstanceName  - " + PC["$fields"]["InstanceName"]["$value"]);
-			AddInputMember(node, "VerticalAlign - " + PC["$fields"]["VerticalAlign"]["$value"]);
-			AddInputMember(node, "HorisontalAlign - " + PC["$fields"]["HorisontalAlign"]["$value"]);
+			AddInputMember(node, "InstanceName  - " + NodeInstance["$fields"]["InstanceName"]["$value"]);
+			AddInputMember(node, "VerticalAlign - " + NodeInstance["$fields"]["VerticalAlign"]["$value"]);
+			AddInputMember(node, "HorisontalAlign - " + NodeInstance["$fields"]["HorisontalAlign"]["$value"]);
 
-			Object.values(PC["$fields"]["WidgetProperties"]["$value"]).forEach(function (object) {
+			Object.values(NodeInstance["$fields"]["WidgetProperties"]["$value"]).forEach(function (object) {
 				AddInputMember(node, object["Name"]["$value"] + " = " + object["Value"]["$value"]);
 			});
 
-			AddInputMember(node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
+			AddInputMember(node, "VerticalAlign - " + s_HashManager.GetHashResult(NodeInstance["$fields"]["VerticalAlign"]["$value"]));
 			//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
 			//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
 			//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
 			//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
 			//AddInputMember( node, "VerticalAlign - " + s_HashManager.GetHashResult(PC["$fields"]["VerticalAlign"]["$value"]));
 
-			Object.values(PC["$fields"]["Outputs"]["$value"]).forEach(function (object) {
+			Object.values(NodeInstance["$fields"]["Outputs"]["$value"]).forEach(function (object) {
 				AddNodePort(node,
 					s_EbxManager.FindInstance(object["$partitionGuid"],
 						object["$instanceGuid"]),
 					true);
 			});
 
-			Object.values(PC["$fields"]["Inputs"]["$value"]).forEach(function (object) {
+			Object.values(NodeInstance["$fields"]["Inputs"]["$value"]).forEach(function (object) {
 				AddNodePort(node,
 					s_EbxManager.FindInstance(object["$partitionGuid"],
 						object["$instanceGuid"]),
