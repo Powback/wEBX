@@ -137,7 +137,7 @@ var LayoutConfig =
 				content:
 					[
 						{
-							type: 'column',
+							type: 'stack',
 							title: '',
 							content:
 								[
