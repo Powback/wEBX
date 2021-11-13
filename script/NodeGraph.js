@@ -229,19 +229,22 @@ function HandleConnections(MainInstance) {
 
 
 	// LinkConnections
-	if (MainInstance["$fields"]["LinkConnections"] != null)
+	if (MainInstance["$fields"]["LinkConnections"] != null &&
+		MainInstance["$fields"]["LinkConnections"]["$value"] != null)
 		Object.values(MainInstance["$fields"]["LinkConnections"]["$value"]).forEach(function (PC) {
 			ProcessConnection(PC, "FieldId", "Link")
 		});
 
 	// PropertyConnections
-	if (MainInstance["$fields"]["PropertyConnections"] != null)
+	if (MainInstance["$fields"]["PropertyConnections"] != null &&
+		MainInstance["$fields"]["PropertyConnections"]["$value"] != null)
 		Object.values(MainInstance["$fields"]["PropertyConnections"]["$value"]).forEach(function (PC) {
 			ProcessConnection(PC, "FieldId", "Property")
 		});
 
 	//EventConnections
-	if (MainInstance["$fields"]["EventConnections"] != null)
+	if (MainInstance["$fields"]["EventConnections"] != null &&
+		MainInstance["$fields"]["EventConnections"]["$value"] != null)
 		Object.values(MainInstance["$fields"]["EventConnections"]["$value"]).forEach(function (PC) {
 			ProcessConnection(PC, "Event", "Event")
 		});
@@ -548,6 +551,11 @@ function ProcessUIConnection(PC) {
 }
 
 function ProcessConnection(PC, variableName, type) {
+
+	// updated json support
+	if (PC["$value"] != null)
+		PC = PC["$value"];
+
 	if (PC["Source"]["$value"] == null ||
 		PC["Target"]["$value"] == null) {
 		console.log("Source or target value null: " + PC["Source"]["$value"] + " | " + PC["Target"]["$value"]);
@@ -614,6 +622,11 @@ function ProcessConnection(PC, variableName, type) {
 				sourceNode = AddSpecialNode("InputField", PC["Source" + variableName]["$value"]);
 
 				Object.values(descriptors[sourceInstanceGuid]["$fields"]["Fields"]["$value"]).forEach(function (value) {
+
+					// updated json support
+					if (value["$value"] != null)
+						value = value["$value"];
+
 					if (value["Id"]["$value"] != PC["Source" + variableName]["$value"])
 						return;
 
@@ -639,6 +652,11 @@ function ProcessConnection(PC, variableName, type) {
 				targetNode = AddSpecialNode("OutputField", PC["Target" + variableName]["$value"]);
 
 				Object.values(descriptors[targetInstanceGuid]["$fields"]["Fields"]["$value"]).forEach(function (value) {
+
+					// updated json support
+					if (value["$value"] != null)
+						value = value["$value"];
+
 					if (value["Id"]["$value"] != PC["Target" + variableName]["$value"])
 						return;
 

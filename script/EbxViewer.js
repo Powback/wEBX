@@ -978,13 +978,35 @@ function ParseLinearTransform(value)
 	if (value == null)
 		return "<nilValue>*null*</nilValue>";
 
+	// Fix for uppercase members
+
+	let s_Right = null;
+	let s_Up = null;
+	let s_Forward = null;
+	let s_Trans = null;
+
+	if (value["right"] != null)
+	{
+		s_Right = value["right"]["$value"];
+		s_Up = value["up"]["$value"];
+		s_Forward = value["forward"]["$value"];
+		s_Trans = value["trans"]["$value"];
+	}
+	else
+	{
+		s_Right = value["Right"]["$value"];
+		s_Up = value["Up"]["$value"];
+		s_Forward = value["Forward"]["$value"];
+		s_Trans = value["Trans"]["$value"];
+	}
+
 	var content = '<ul type="2nd">' +
 		'<value class="LinearTransform">' +
 		'<li>LinearTransform(';
-	content += '<li>' + ParseVec3(value["right"]["$value"]) + ",</li>";
-	content += '<li>' + ParseVec3(value["up"]["$value"]) + ",</li>";;
-	content += '<li>' + ParseVec3(value["forward"]["$value"]) + ",</li>";
-	content += '<li>' + ParseVec3(value["trans"]["$value"]) + "</li>";
+	content += '<li>' + ParseVec3(s_Right) + ",</li>";
+	content += '<li>' + ParseVec3(s_Up) + ",</li>";;
+	content += '<li>' + ParseVec3(s_Forward) + ",</li>";
+	content += '<li>' + ParseVec3(s_Trans) + "</li>";
 	content += ')</li>' +
 		'</value>' +
 		'</ul>';
