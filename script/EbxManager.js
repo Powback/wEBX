@@ -55,38 +55,64 @@ class EbxManager
         if( this.m_LoadedPartitions[partitionGuid] == null && shouldLoad == true )
             this.LoadEbxFromGuid(partitionGuid); 
 
-        return this.m_LoadedPartitions[partitionGuid];
+        // Ghetto case sensitive fix
+        let s_LoadedPartition = this.m_LoadedPartitions[partitionGuid];
+
+        if (s_LoadedPartition == null)
+            s_LoadedPartition = this.m_LoadedPartitions[partitionGuid.toLowerCase()];
+
+        if (s_LoadedPartition == null)
+            s_LoadedPartition = this.m_LoadedPartitions[partitionGuid.toUpperCase()];
+
+        return s_LoadedPartition
     }
 
     FindInstance( partitionGuid, instanceGuid, shouldLoad = true ) 
     {
-        if( instanceGuid == null)
+        if (instanceGuid == null)
             return null;
 
-        var Partition = this.FindPartition(partitionGuid);
+        let s_Partition = this.FindPartition(partitionGuid);
 
-        if (Partition == null ||
-            Partition["InstanceGuidMap"][instanceGuid] == null)
+        if (s_Partition == null ||
+            s_Partition["InstanceGuidMap"] == null)
             return null;
 
 
-        return Partition["InstanceGuidMap"][instanceGuid];
+        let s_Instance = s_Partition["InstanceGuidMap"][instanceGuid];
+
+        if (s_Instance == null)
+            s_Instance = s_Partition["InstanceGuidMap"][instanceGuid.toLowerCase()];
+
+        if (s_Instance == null)
+            s_Instance = s_Partition["InstanceGuidMap"][instanceGuid.toUpperCase()];
+
+        return s_Instance;
     }
 
     
-    LoadEbxFromGuid( partitionGuid, loadCallback = null, instanceGuid = null, ) 
+    LoadEbxFromGuid( partitionGuid, loadCallback = null, instanceGuid = null ) 
     {
-        if (!this.m_GuidDictionary[partitionGuid]) 
+        // Ghetto case sensitive fix...
+        let s_PartitionData = this.m_GuidDictionary[partitionGuid];
+
+        if (s_PartitionData == null) 
+            s_PartitionData = this.m_GuidDictionary[partitionGuid.toLowerCase()];
+
+        if (s_PartitionData == null) 
+            s_PartitionData = this.m_GuidDictionary[partitionGuid.toUpperCase()];
+
+        if (s_PartitionData == null) 
         {
             console.error("Tried to load a partition that does not exsits: " + partitionGuid)
             return false;
         }
         
-        return this.LoadEbxFromPath( this.m_GuidDictionary[partitionGuid] + ".json", loadCallback, instanceGuid )
+        return this.LoadEbxFromPath( s_PartitionData+ ".json", loadCallback, instanceGuid )
     }
 
 
-    LoadEbxFromPath(path, loadCallback = null, instanceGuid = null) 
+    LoadEbxFromPath(path, loadCallback = null, instanceGuid = null, failedCallback = null) 
     {
         console.log("Loading partition " + s_SettingsManager.getGameRequestPath()+ path)
         $.ajax({
@@ -129,7 +155,9 @@ class EbxManager
             {
                 console.log(xhr.responseText);
                 console.log("Failed to load partition: "  + s_SettingsManager.getGameRequestPath() + "/" + path)
-
+                
+                if (failedCallback != null)
+                    failedCallback(path)
             },
         });
     }

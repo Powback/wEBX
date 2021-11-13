@@ -81,9 +81,7 @@ function LoadEbxFromHash()
 
 	if (params.length == 2)
 	{
-		s_EbxManager.LoadEbxFromGuid(params[0].toLowerCase(),
-			LoadCallback,
-			params[1].toLowerCase());
+		s_EbxManager.LoadEbxFromGuid(params[0], LoadCallback, params[1]);
 		return;
 	}
 
@@ -91,10 +89,17 @@ function LoadEbxFromHash()
 	currentPath = hash;
 
 	// If hash contains json, get the path and load the selected partition.
-	//if (hash.indexOf(".ebx") != -1) 
+	let s_DotIndex = hash.lastIndexOf(".");
+	if (s_DotIndex != -1) 
 	{
-		s_EbxManager.LoadEbxFromPath(hash.replace(".ebx", "").replace(".json", "") + ".json",
-			LoadCallback);
+		let s_CleanedHash = hash.substring(0, s_DotIndex);
+		//let s_CleanedHash = hash.replace(".ebx", "").replace(".json", "");
+
+		s_EbxManager.LoadEbxFromPath(s_CleanedHash + ".json", LoadCallback);
+	}
+	else
+	{
+		s_EbxManager.LoadEbxFromGuid(hash, LoadCallback);
 	}
 }
 
@@ -313,7 +318,8 @@ function CreateToolbar()
 			"Warsaw", 
 			"Tunguska",
 			"Casablanca",
-			"Jupiter-debug"
+			"Jupiter-debug",
+			"Kingston"
 		];
 
 		for(let s_Key in s_Options)
@@ -373,13 +379,17 @@ function Load()
 	s_EbxManager.AddGuidDictionaryLoadedCallback(function (self, dictionary)
 	{
 		s_MessageSystem.ExecuteEventSync("OnGuidDictionaryLoaded", dictionary);
+
+		// Load from hash
+		LoadEbxFromHash();
 	})
 
 	s_EbxManager.LoadGuidTable();
 
 	s_MessageSystem.ExecuteEventSync("OnGameLoaded", s_SettingsManager.m_Game);
 
-	LoadEbxFromHash();
+	
+	
 }
 
 

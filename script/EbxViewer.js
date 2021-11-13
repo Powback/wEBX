@@ -260,8 +260,8 @@ class EbxViewer
 
 
 		content += 
-`<li class="${(instance["$array"] != null) ? "minimized" : ""}">
-	${s_TypeElement}`;
+			`<li class="${(instance["$array"] != null) ? "minimized" : ""}">
+				${s_TypeElement}`;
 
 		if( field != null)
 			content += `<field class="${subField ? "subField" : ""}">${field}</field>: `;
@@ -297,6 +297,7 @@ class EbxViewer
 		{
 			//if this is a ValueType, we fix it
 			if (instance["$value"] != null)
+
 			{
 				content += `<label>${instance["$type"]}</label>`;
 
@@ -357,6 +358,11 @@ class EbxViewer
 
 	HandleReference(instance, direct, directType)
 	{
+		// updated json support
+		if (direct && instance["$value"] != null)
+			instance = instance["$value"];
+
+
 		var content = "";
 
 		let PartitionGuid = null;
@@ -445,9 +451,9 @@ class EbxViewer
 
 	HandleArray(instance)
 	{
-		
 
-		if (Object.values(instance['$value']).length == 0)
+		if (instance['$value'] == null || 
+			Object.values(instance['$value']).length == 0)
 			return `<nilValue>*nullArray*</nilValue> \t| ${instance["$type"]}`;
 
 		var content = "";
