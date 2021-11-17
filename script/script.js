@@ -318,8 +318,7 @@ function CreateToolbar()
 			"Warsaw", 
 			"Tunguska",
 			"Casablanca",
-			"Jupiter-debug",
-			"Kingston"
+			"Jupiter-debug"
 		];
 
 		for(let s_Key in s_Options)

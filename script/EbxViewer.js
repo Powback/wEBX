@@ -359,7 +359,7 @@ class EbxViewer
 	HandleReference(instance, direct, directType)
 	{
 		// updated json support
-		if (direct && instance["$value"] != null)
+		if (direct && instance != null && instance["$value"] != null)
 			instance = instance["$value"];
 
 
