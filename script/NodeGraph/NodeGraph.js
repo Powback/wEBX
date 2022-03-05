@@ -9,11 +9,14 @@ var unknownHashes = [];
 var knownIDs = [];
 var descriptors = [];
 
-LGraphNode.prototype.disconnectInput = function (slot) {
+LGraphNode.prototype.disconnectInput = function(slot) {
 	return true;
 }
 
+// The blueprint node graph is made using LiteGraph
 
+// A Cytoscape graph is also created with nodes reprenting the LiteGraph nodes
+// The Cytoscape graph is sorted using a clever algorithm and those positions are applied to the LiteGraph nodes
 class CytoscapeSorter {
 	constructor() {
 		//Cytoscape for node positioning algorithm
@@ -21,7 +24,6 @@ class CytoscapeSorter {
 		this.m_Edges = [];
 		this.m_Cytoscape = null;
 	}
-
 
 	AddNode(id) {
 		var index = this.m_ChartNode.length;
@@ -46,11 +48,7 @@ class Graph {
 		this.m_Nodes = [];
 
 		this.m_Canvas = null;
-
-
 	}
-
-
 
 	Reset() {
 		console.log("Clearing node graph");
@@ -61,20 +59,15 @@ class Graph {
 		LGraphCanvas.link_type_colors["Property"] = "#dcbc42";
 		LGraphCanvas.link_type_colors["Link"] = "#dc4242";
 
-		//LGraphCanvas.link_type_colors["Event"] = "#4bdc4b"
-		//LGraphCanvas.link_type_colors["Property"] = "#dcbc42"
-		//LGraphCanvas.link_type_colors["Link"] = "#4ea3d8"
 
 		graph.start()
 		canvas = new LGraphCanvas("#eventGraph", graph);
 		canvas.render_only_selected = false
 		canvas.background_image = null;
 		canvas.resize($(window).width() - 10, $(window).height() - 10);
-
 	}
 
 	Destroy() {
-
 		if (m_Cytoscape != null) {
 			m_Cytoscape.destroy();
 			m_Cytoscape = null;
@@ -103,10 +96,6 @@ class Graph {
 		console.log("Cleared graph");
 	}
 
-	/*
-	CreateNode(id, )
-
-	*/
 	CreateNode(nodeType) {
 		if (instance == null)
 			return null;
@@ -509,7 +498,6 @@ function ProcessUIConnection(PC) {
 
 	var targetPartitionGuid = PC["$fields"]["TargetNode"]["$value"]["$partitionGuid"];
 	var targetInstanceGuid = PC["$fields"]["TargetNode"]["$value"]["$instanceGuid"];
-
 
 
 	var sourceInstance = s_EbxManager.FindInstance(sourcePartitionGuid, sourceInstanceGuid);
@@ -989,10 +977,8 @@ function AddNode(instance, partitionGuid) {
 }
 
 
-function StringToColor(string)
-{
-	let fbHash = function(str)
-	{
+function StringToColor(string) {
+	let fbHash = function(str) {
 		var hash = 5381;
 		for (var i = 0; i < str.length; i++) 
 		{
@@ -1001,8 +987,7 @@ function StringToColor(string)
 		return hash;
 	}
 		
-	let hashStringToColor = function(str, hashFunc) 
-	{
+	let hashStringToColor = function(str, hashFunc) {
 		var hash = hashFunc(str);
 		var r = (hash & 0xFF0000) >> 16;
 		var g = (hash & 0x00FF00) >> 8;
@@ -1013,8 +998,7 @@ function StringToColor(string)
 	return hashStringToColor(string, fbHash);
 }
 
-function CreateNode(type) 
-{
+function CreateNode(type) {
 	switch (type) 
 	{
 		case "InputEvent":
@@ -1043,7 +1027,6 @@ function CreateNode(type)
 			node.boxcolor = StringToColor(type);
 
 			break;
-
 	}
 
 
@@ -1102,7 +1085,7 @@ function ApplyCoordinates() {
 
 //Init();
 
-$(window).resize(function () {
+$(window).resize(function() {
 	if (canvas != null)
 		canvas.resize($('.canvasHolder').width(), $('.canvasHolder').height())
 });

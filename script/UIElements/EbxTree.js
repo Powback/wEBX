@@ -1,12 +1,11 @@
-class EbxTree
-{
-    constructor(container, state)
-    {
+// Folder navigation, also does search
+class EbxTree {
+    constructor(container, state) {
         this._container = container;
         this._state = state;
 
-        this.m_Data = 
-        {
+        // The file and folder data to create the tree from
+        this.m_Data = {
 			"type": "folder",
 			"text": "",
             "state": 
@@ -18,30 +17,27 @@ class EbxTree
         };
 
 
+        // DOM elements for search input and folder tree
         this.m_TreeDom = this.CreateTreeDom();
         this.m_SearchDom = this.CreateSearchDom();
 
-        //this.m_TreeElementName = '#Navigation';
-
-        //this.m_SearchInputName = '#search-input';
-
-        s_MessageSystem.RegisterEventHandler("OnGuidDictionaryLoaded", this.OnGuidDictionaryLoaded.bind(this));
-        s_MessageSystem.RegisterEventHandler("OnGameLoaded", this.OnGameLoaded.bind(this));
-
-
         this._container.getElement().append(this.m_SearchDom);
         this._container.getElement().append(this.m_TreeDom);
+
+        // Build folder hierarchy from the guidDictionary
+        s_MessageSystem.RegisterEventHandler("OnGuidDictionaryLoaded", this.OnGuidDictionaryLoaded.bind(this));
+
+        // Set root folder name
+        s_MessageSystem.RegisterEventHandler("OnGameLoaded", this.OnGameLoaded.bind(this));
     }
 
-    CreateTreeDom()
-    {
+    CreateTreeDom() {
         let scope = this;
 
-        let Dom = $(document.createElement("div"));
+        let dom = $(document.createElement("div"));
 
 
-        Dom.jstree(
-        {
+        dom.jstree({
             "types": {
                     "folder" : {
                     "icon" : "jstree-folder"
@@ -82,180 +78,130 @@ class EbxTree
             },
         });
     
-        Dom.on('changed.jstree', function(e, data) 
-        {
-            if (data.node == null) 
+        dom.on('changed.jstree', function(e, data) {
+            if (data.node == null) {
                 return;
+            }
+        
+            // Load selected partition when a file is clicked
+            if (data.node.type == "file") {
+                var path = data.instance.get_path(data.node,'/').replace(s_SettingsManager.getGame() + "/", "");
 
-            console.log(data.node);
-
-            if( data.node.type == "folder")
-            {
-                let Content = 
-                {
+                // Send partition path to be loaded
+                s_MessageSystem.ExecuteEventSync("OnFileSelected", path);
+            
+            // Preload all partitions in a folder when the folder is clicked
+            } else if (data.node.type == "folder") {
+                let eventData = {
                     "name": data.node.text,
                     "children": []
                 };
                 
-                // Get the actual node
-
-                // Attempt to traverse if the node has children
-                $.each(data.node.children, function(index, child) 
-                {
-                    let ChildNode = scope.m_TreeDom.jstree(true).get_node(child);
-
-                    if(ChildNode.type != "file")
+                // Traverse folder children
+                $.each(data.node.children, function(index, childId) {
+                    // Ingore folders
+                    let childNode = scope.m_TreeDom.jstree(true).get_node(childId);
+                    if(childNode.type != "file") {
                         return true;
-
-                    var FullPath = scope.m_TreeDom.jstree(true).get_path(ChildNode,'/').replace(s_SettingsManager.m_Game + "/", "")
-
-                    Content["children"].push(FullPath);
+                    }
+                    
+                    // Save partition path
+                    var path = scope.m_TreeDom.jstree(true).get_path(childNode,'/').replace(s_SettingsManager.getGame() + "/", "") // TODO: Handle path in event callback
+                    eventData["children"].push(path);
                 });
 
-                console.log(Content);
-
-                s_MessageSystem.ExecuteEventSync("OnFolderSelected", Content);
+                // Send partition paths to be preloaded
+                s_MessageSystem.ExecuteEventSync("OnFolderSelected", eventData);
             }
-
-            if (data.node.type != "file")
-                return;
-
-
-            var path = data.instance.get_path(data.node,'/').replace(s_SettingsManager.m_Game + "/", "");
-
-
-            s_MessageSystem.ExecuteEventSync("OnFileSelected", path);
         });
 
-        return Dom;
+        return dom;
     }
 
-    CreateSearchDom()
-    {
-        let Scope = this;
+    CreateSearchDom() {
+        let scope = this;
 
-		let Dom = $(document.createElement("div"));
-        Dom.addClass("contentControls");
+		// Create container and input elements
+        let dom = $(document.createElement("div"));
+        dom.addClass("contentControls");
         
-        let SearchInput = $(document.createElement("input"));
-        SearchInput.addClass("search-input form-control");
-		SearchInput.attr("placeholder", "Search");
-		Dom.append(SearchInput);
+        let searchInput = $(document.createElement("input"));
+        searchInput.addClass("search-input form-control");
+		searchInput.attr("placeholder", "Search");
+		dom.append(searchInput);
 
-		var to = false;
-        SearchInput.keyup(function () 
-        {
-            if(to) 
-                clearTimeout(to); 
-
-            to = setTimeout(function () 
-            {
-				var v = SearchInput.val();
-				Scope.m_TreeDom.jstree(true).search(v);
+		// 
+        var timeout = false;
+        searchInput.keyup(function() {
+            if (timeout) {
+                clearTimeout(timeout); 
+            }
+                
+            timeout = setTimeout(function() {
+				var v = searchInput.val();
+				scope.m_TreeDom.jstree(true).search(v);
 			}, 250);
         });
 
-        return Dom;
+        return dom;
     }
 
-
-
-    UpdateTreeData()
-    {
+    // Update data
+    UpdateTreeData() {
         this.m_TreeDom.jstree(true).settings.core.data = this.m_Data;
-
         this.m_TreeDom.jstree(true).refresh();
     }
 
-    OnGameLoaded( data )
-    {
-        console.log("ongameloaded");
+    // Set root folder name 
+    OnGameLoaded(data) {
         this.m_Data.text = data;
-
         this.UpdateTreeData();
     }
 
-    OnGuidDictionaryLoaded( dictionary )
-    {
-        console.log("Start!");
-
-        for (let [key, path] of Object.entries(dictionary))
-        {
-            let splitPath = getPaths(path);
-            let parentPath = this.m_Data;
+    // The guid dictionary has guid/path pairs for all partitions/files.
+    // Build the folder structure from the paths.
+    OnGuidDictionaryLoaded(dictionary) {
+        // Iterate all partitions
+        for (let [guid, path] of Object.entries(dictionary)) {
+            let folderNames = getPaths(path);
             let fileName = getFilename(path);
 
-            splitPath.forEach(function(subPath) 
-            {
-                let parentIndex = parentPath.children.find(x => x.text.toLowerCase() === subPath.toLowerCase());
-                if (parentIndex === undefined) 
-                {
-                    let a = parentPath.children.push(
-                    {
+            // Root folder for the jstree
+            let parentFolder = this.m_Data;
+            
+            // Iterate folder names and create those that dont exist
+            folderNames.forEach(function(folderName) {
+                let nextFolder = parentFolder.children.find(x => x.text.toLowerCase() === folderName.toLowerCase());
+                // Create folder if it doesnt exist
+                if (nextFolder === undefined) {
+                    nextFolder = {
                         "type": "folder",
-                        "text": subPath,
+                        "text": folderName,
                         "children": []
-                    });
-                    parentPath = parentPath.children[a - 1];
-                } 
-                else 
-                {
-                    parentPath = parentIndex;
-                    // Sometimes the object is referenced lowercase. If we have a string that has uppercase letters, we can assume it's correct.
-                    // Replace lowercase paths with the actual case.
-                    if (hasUpperCase(subPath) && hasLowerCase(parentPath.text)) {
-                        parentPath.text = subPath;
                     }
+
+                    parentFolder.children.push(nextFolder)
+                
+                // Fix paths that have lowercase folder names which we dont want.
+                // If the folder name has any uppercase letters, we can assume it's correct.
+                } else if (hasUpperCase(folderName) && !hasUpperCase(nextFolder.text)) {
+                    nextFolder.text = folderName;
                 }
+
+                parentFolder = nextFolder
             });
 
-            parentPath.children.push(
-            {
+            // Add the partition file to the final folder
+            parentFolder.children.push({
                 "type": "file",
                 "text": fileName + ".json",
-                "id": key 
+                "id": guid 
             });
         }
 
-
-        console.log(this.m_Data);
-
-        
         this.UpdateTreeData();
     }
-
-  
-
-    /*
-    ContextMenu( node )
-    {
-        let items =
-        {
-            EbxViewer: 
-            { // The "rename" menu item
-                label: "Ebx Viewer",
-                action: function () {}
-            },
-            NodeViewer: 
-            { // The "delete" menu item
-                label: "NodeGraph Viewer",
-                action: function () {}
-            },
-            CurveViewer: 
-            { // The "delete" menu item
-                label: "Curve Viewer",
-                action: function () {}
-            },
-            TimelineViewer: 
-            { // The "delete" menu item
-                label: "Timeline Viewer",
-                action: function () {}
-            }
-        };
-
-        return items;
-    }
-    */
 }
+
 
 //var s_EbxTree = new EbxTree();

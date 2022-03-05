@@ -1,40 +1,36 @@
-
-
 class MessageSystem
 {
-    constructor()
-    {
+    constructor() {
         this.m_Handlers = {};
     }
 
-    RegisterEventHandler(id, handler)
-    {
-        if (this.m_Handlers[id] == null)
+    // Register event handlers
+    RegisterEventHandler(id, handler) {
+        if (this.m_Handlers[id] == null) {
             this.m_Handlers[id] = [];
-
+        }
+            
         this.m_Handlers[id].push(handler);
     }
 
-    ExecuteEventSync(id, data, resultArray = null)
-    {
-        if (this.m_Handlers[id] == null)
+    // Dispatch events
+    ExecuteEventSync(id, data, resultArray = null) {
+        if (this.m_Handlers[id] == null) {
             return false;
+        }
+            
+        for (let l_Key in this.m_Handlers[id]) {
+            let HandlerFunc = this.m_Handlers[id][l_Key];
 
-
-        for (let Key in this.m_Handlers[id])
-        {
-            let HandlerFunc = this.m_Handlers[id][Key];
-
-            if(HandlerFunc == null)
+            if(HandlerFunc == null) {
                 continue;
+            }
+                
+            let s_RetVal = HandlerFunc(data);
 
-            let RetVal = HandlerFunc(data);
-
-            if (resultArray != null &&
-                (RetVal != undefined && RetVal != null))
-                resultArray.push(RetVal);
-
-
+            if (resultArray != null && (s_RetVal != undefined && s_RetVal != null)) {
+                resultArray.push(s_RetVal);
+            }
         }
 
         return this.m_Handlers[id].length > 0;

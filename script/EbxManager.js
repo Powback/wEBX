@@ -1,17 +1,14 @@
 
 
-class EbxManager
-{
-    constructor()
-    {
+class EbxManager {
+    constructor() {
         this.Reset();
 
         this.m_PartitionLoadedCallback = [];
         this.m_GuidDictionaryLoadedCallback = [];
     }
 
-    Reset()
-    {
+    Reset() {
         this.m_GuidDictionary = {};
         this.m_LoadedPartitions = {};
 
@@ -19,36 +16,31 @@ class EbxManager
     }
 
 
-
-    AddParitionLoadedCallback( callback )
-    {
-        this.m_PartitionLoadedCallback.push( callback );
+    AddParitionLoadedCallback(callback) {
+        this.m_PartitionLoadedCallback.push(callback);
     }
 
-    AddGuidDictionaryLoadedCallback( callback )
-    {
-        this.m_GuidDictionaryLoadedCallback.push( callback );
+    AddGuidDictionaryLoadedCallback(callback) {
+        this.m_GuidDictionaryLoadedCallback.push(callback);
     }
 
 
-    GetPartitionGuidPath( partitionGuid )
-    {
-        if( this.m_GuidDictionary[partitionGuid] != null)
+    GetPartitionGuidPath(partitionGuid) {
+        if (this.m_GuidDictionary[partitionGuid] != null){
             return this.m_GuidDictionary[partitionGuid];
-
+        }
+            
         return "*unknownRef* " + partitionGuid.toUpperCase();
     }
 
-    AddPartitionGuidPath( partitionGuid, path )
-    {
+    AddPartitionGuidPath(partitionGuid, path) {
         if( this.m_GuidDictionary[partitionGuid] != null )
             return;
 
         this.m_GuidDictionary[partitionGuid] = path;
     }
 
-    FindPartition( partitionGuid, shouldLoad = true ) 
-    {
+    FindPartition(partitionGuid, shouldLoad = true) {
         if( partitionGuid == null)
             return null;
 
@@ -67,8 +59,7 @@ class EbxManager
         return s_LoadedPartition
     }
 
-    FindInstance( partitionGuid, instanceGuid, shouldLoad = true ) 
-    {
+    FindInstance(partitionGuid, instanceGuid, shouldLoad = true) {
         if (instanceGuid == null)
             return null;
 
@@ -91,8 +82,7 @@ class EbxManager
     }
 
     
-    LoadEbxFromGuid( partitionGuid, loadCallback = null, instanceGuid = null ) 
-    {
+    LoadEbxFromGuid(partitionGuid, loadCallback = null, instanceGuid = null) {
         // Ghetto case sensitive fix...
         let s_PartitionData = this.m_GuidDictionary[partitionGuid];
 
@@ -112,9 +102,9 @@ class EbxManager
     }
 
 
-    LoadEbxFromPath(path, loadCallback = null, instanceGuid = null, failedCallback = null) 
-    {
+    LoadEbxFromPath(path, loadCallback = null, instanceGuid = null, failedCallback = null) {
         console.log("Loading partition " + s_SettingsManager.getGameRequestPath()+ path)
+
         $.ajax({
             context: this,
             url: s_SettingsManager.getGameRequestPath() + path,
@@ -127,12 +117,8 @@ class EbxManager
                 //xhr.overrideMimeType('application/json; charset=windows-1252');
             },
 
-            success: function(response) 
-            {
-
-                
+            success: function(response) {
                 this.m_LoadedPartitions[response['$guid']] = response;
-
 
                 this.m_LoadedPartitions[response['$guid']]["InstanceGuidMap"] = {};
 
@@ -143,7 +129,7 @@ class EbxManager
 
                 this.AddPartitionGuidPath( response['$guid'], path );
 
-                this.m_PartitionLoadedCallback.forEach( function(callback)
+                this.m_PartitionLoadedCallback.forEach( function(callback)      // TODO: Dispatch event instead of callback system?
                 {
                     callback( this );
                 }, response);
@@ -151,8 +137,8 @@ class EbxManager
                 if (loadCallback != null)
                     loadCallback( response, instanceGuid );
             },
-            error: function(xhr, status, error) 
-            {
+
+            error: function(xhr, status, error) {
                 console.log(xhr.responseText);
                 console.log("Failed to load partition: "  + s_SettingsManager.getGameRequestPath() + "/" + path)
                 
@@ -163,12 +149,8 @@ class EbxManager
     }
 
 
-    
-
-    LoadGuidTable()
-    {
+    LoadGuidTable() {
         this.Reset();
-
 
         console.log( "Loading guidTable \"" + s_SettingsManager.getGameRequestPath() + "guidDictionary.json" +"\"");
         $.ajax({
@@ -197,6 +179,5 @@ class EbxManager
 
     }
 }
-
 
 var s_EbxManager = new EbxManager();

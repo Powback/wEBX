@@ -1,8 +1,6 @@
 
-class GraphView
-{
-    constructor(container, state)
-    {
+class GraphView {
+    constructor(container, state) {
         this._container = container;
         this._state = state;
 
@@ -11,12 +9,10 @@ class GraphView
 
         this._container.getElement().append(this.m_GraphCanvas);
 
-
-		this._container.on("resize",this.UpdateSize.bind(this));
+		//this._container.on("resize", this.UpdateSize.bind(this));
     }
 
-    UpdateSize()
-    {
+    UpdateSize() {
         canvas.resize(this._container.width, this._container.height);
     }
 }

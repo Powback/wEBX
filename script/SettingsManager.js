@@ -1,10 +1,6 @@
-
-class SettingsManager
-{
-    constructor()
-    {
-        let DefaultSettings = 
-        {
+class SettingsManager {
+    constructor() {
+        let DefaultSettings = {
             "game": "Venice", //"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
             "gamePath": "./Games/", // "http://webx.powback.com/"
             "hashPath": "./Hash/"
@@ -12,59 +8,51 @@ class SettingsManager
 
         this.m_Settings = JSON.parse(localStorage.getItem("webx_settings"));
 
-        if( this.m_Settings == null )
-        {
+        if (this.m_Settings == null) {
             this.m_Settings = DefaultSettings;
-        }
-        else
-        {
-            for( let Key in DefaultSettings )
-            {
-                if( this.m_Settings[Key] == null)
+
+        } else {
+            for(let Key in DefaultSettings) {
+                if (this.m_Settings[Key] == null) {
                     this.m_Settings[Key] = DefaultSettings[Key];
+                }
             }
         }
 
-        this.saveSettings( );
-
+        this.saveSettings();
     }
 
-    saveSettings()
-    {
-        if( this.m_Settings == null )
+    saveSettings() {
+        if (this.m_Settings == null) {
             return;
-
+        }
+            
         localStorage.setItem('webx_settings', JSON.stringify(this.m_Settings));
     }
 
-    getSettingsPath(key)
-    {
-        let DataPath = this.m_Settings[key];
+    getSettingsPath(key) {
+        let s_DataPath = this.m_Settings[key];
 
-        if( DataPath != "" && DataPath != null )
-            return DataPath;
-
+        if( s_DataPath != "" && s_DataPath != null ) {
+            return s_DataPath;
+        }
+            
         return "./";
     }
 
-
-    getGame()
-    {
+    getGame() {
         return this.m_Settings["game"];
     }
 
-    getGameRequestPath()
-    {
+    getGameRequestPath() {
         return this.getGamePath() + this.m_Settings["game"] + "/";
     }
 
-    getGamePath()
-    {
+    getGamePath() {
         return this.getSettingsPath("gamePath");
     }
 
-    getHashPath()
-    {
+    getHashPath() {
         return this.getSettingsPath("hashPath");
     }
 }
