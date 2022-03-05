@@ -106,8 +106,8 @@ function CreatePageLayout() {
 
 
 function CreateToolbar() {
-	let s_MenuBar = document.getElementById("menubar");
-	if (s_MenuBar == null) {
+	let s_Toolbar = document.getElementById("toolbar");
+	if (s_Toolbar == null) {
 		return;
 	}
 		
@@ -146,7 +146,9 @@ function CreateToolbar() {
 	s_GameSelect.value = s_SettingsManager.getGame();
 
 	// Add to page
-	s_MenuBar.appendChild(s_GameSelect);
+	s_Toolbar.appendChild(s_GameSelect);
+
+	// Create
 }
 
 
@@ -256,7 +258,7 @@ var LayoutConfig = {
 		showCloseIcon: false
 	},
 	dimensions: {
-		borderWidth: 5,
+		borderWidth: 7,
 		minItemHeight: 10,
 		minItemWidth: 10,
 		headerHeight: 20,

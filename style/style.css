@@ -1,3 +1,5 @@
+/* #region reset */
+
 /* http://meyerweb.com/eric/tools/css/reset/ 
    v2.0 | 20110126
    License: none (public domain)
@@ -46,59 +48,69 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+/* #endregion */
 
+/* #region scrollbar */
+::-webkit-scrollbar {
+	height: 10px;
+	width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: darkgray;
+	border-radius: 10px;
+}
+
+::-webkit-scrollbar-corner {
+	color: black;
+}
+/* #endregion */
+
+* {
+	box-sizing: border-box;
+}
 
 html, body{
-	min-height: 100% !important;
 	height: 100%;
 }
 
-#page {
-	margin: 0;
-	padding: 0;
-	width: 100%;
-	height: calc( 100% - 30px );
-	overflow: hidden;
-	font-family: monospace;
-}
-
-#toolbar 
-{
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 30px;
-	background-color: rgba(34, 34, 34, 0.8);
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 2px solid black;
-}
-#toolbarLeft, #toolbarCenter, #toolbarRight {
-	display: flex;
-}
-
-#NavigationWrapper {
-	display: inline-block;
-    color: #fff;
-    overflow: hidden;
-    min-height: 100%;
-    min-width: 25%;
-    width: auto;
-}
-#Navigation {
-	position: relative;
-    height: auto;
-	width: 100%;
+body .lm_content {
 	overflow: auto;
 }
 
-#search-input
-{
+
+
+#page {
+	height: calc( 100% - 30px );
+	font-family: monospace;
+}
+
+#toolbar {
+	line-height: 30px;
+	background-color: rgba(34, 34, 34, 0.8);
+    
+    border-bottom: 4px solid black;
+
+}
+
+#toolbar > * {
+	display: inline-block;
+	vertical-align:	middle;
+	padding: 0 10px;
+}
+
+#toolbar div {
+	font-family: Verdana;
+	font-weight: 800;
+	color: lightgray;
+}
+
+#search-input {
+	margin: 5px;
 	position: relative;
 	display: inline-block;
 	height: auto;
 	width: 100%;
-
 	border: 2px black solid;
 }
 #currentWrapper 
@@ -125,6 +137,7 @@ html, body{
 ul {
 	padding-left: 30px;
 	border-left: 1px solid #464646;
+	box-sizing: border-box;
 }
 
 h1 {
@@ -157,11 +170,6 @@ h1 {
 	content:"\25B6";
 }
 
-/*
-
-	Check my style
-
-*/
 
 html {
 	background-color: rgba(39, 40, 34, 1);
@@ -228,7 +236,6 @@ ul[type="2nd"] {
 value.String {
 	color: rgba(230, 219, 116, 1)
 }
-
 
 value.Int32, value.UInt32, value.UInt16, value.Int16, value.Float32, value.Double, value.Single, value.Boolean, value.SByte {
 	color: #f200ff;
@@ -309,10 +316,7 @@ div#PropertyViewer {
     display: inline-table;
 }
 
-body .lm_content
-{
-	overflow: scroll;
-}
+
 
 
 thead
