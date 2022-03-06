@@ -81,8 +81,14 @@ body .lm_content {
 
 
 #page {
-	height: calc( 100% - 30px );
+	height: calc( 100% - 35px );	/* TODO: fix scrollbar hacks */
 	font-family: monospace;
+}
+
+
+#layout-container {
+	width: 100%;
+	height: 100%;	
 }
 
 #toolbar {
@@ -99,14 +105,35 @@ body .lm_content {
 	padding: 0 10px;
 }
 
-#toolbar div {
+#logo {
 	font-family: Verdana;
+	font-weight: 800;
+	color: lightgray;
+	text-decoration: none;
+}
+
+.bookmark-list-title {
+	padding-top: 10px;
+	font-size: 2;
 	font-weight: 800;
 	color: lightgray;
 }
 
+.bookmark-list {
+	border: 0;
+	padding-left: 5px;
+	list-style: circle inside;
+}
+
+.bookmark a {
+	font-size: 2;
+	font-weight: 800;
+	text-decoration: none;
+	color: #f98926;
+}
+
 #search-input {
-	margin: 5px;
+	padding: 5px;
 	position: relative;
 	display: inline-block;
 	height: auto;
@@ -121,8 +148,7 @@ body .lm_content {
 #Current, #PropertyViewer {
 	color: #808080;
 	line-height: 16px;
-	margin-top: 10px;
-    margin-bottom: 50px;
+	padding: 10px;
 }
 
 #eventGraph
@@ -349,11 +375,6 @@ th
 	background-color: blue;
 }
 
-#GoldenLayoutContainer
-{
-	width: 100%;
-	height: 100%;
-}
 
 
 .instanceTree

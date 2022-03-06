@@ -3,14 +3,18 @@ function Load() {
 	CreatePageLayout();
 	// Create game selection toolbar
 	CreateToolbar();
+	// Show bookmarked partitions
+	CreateBookmarks()
 
 	// Change hash when selecting a file in the folder tree or instance list
 	// A hash change callback will update the page
 	s_MessageSystem.RegisterEventHandler("OnFileSelected", function(path) {
+		document.title = getFilename(path)
 		window.location.hash = "#" + path;
 	});
 
 	s_MessageSystem.RegisterEventHandler("OnInstanceSelected", function(instance) {
+		document.title = "instance selected"
 		window.location.hash = "#" + instance["partitionGuid"] + "&" + instance["instanceGuid"];
 	});
 
@@ -32,74 +36,39 @@ let g_PageLayout = null;
 let g_GoldenLayoutElement = null;
 
 function CreatePageLayout() {
-	let s_Page = $('#page');
+	g_GoldenLayoutElement = document.getElementById("layout-container");
 
-	g_GoldenLayoutElement = $(document.createElement("div"));
-	g_GoldenLayoutElement.attr('id', "GoldenLayoutContainer");
-
-	s_Page.append(g_GoldenLayoutElement);
-
-	/*
-	let SavedState = localStorage.getItem('PageLayoutConfig');
-
-	if (SavedState != null)
-		g_PageLayout = new GoldenLayout(JSON.parse(SavedState), $('#page'));
-	else
-	*/
-		g_PageLayout = new GoldenLayout(LayoutConfig, "#GoldenLayoutContainer");
-
+	// Use stored layout if present
+	let savedLayout = localStorage.getItem('page-layout');
+	if (savedLayout != null) {
+		g_PageLayout = new GoldenLayout(JSON.parse(savedLayout), g_GoldenLayoutElement);
+	} else {
+		g_PageLayout = new GoldenLayout(g_DefaultLayout, g_GoldenLayoutElement);
+	}
+		
+	// Save changes
 	g_PageLayout.on('stateChanged', function() {
-		localStorage.setItem('PageLayoutConfig', JSON.stringify(g_PageLayout.toConfig()));
+		localStorage.setItem('page-layout', JSON.stringify(g_PageLayout.toConfig()));
 	});
 
-	//g_PageLayout = new GoldenLayout(LayoutConfig, $('#page')); //,  $('#currentWrapper')
+	// Folder navigation
+	g_PageLayout.registerComponent('DirectoryTreeView', EbxTree);
 
-	g_PageLayout.registerComponent('FileEbxTree', EbxTree);
-	g_PageLayout.registerComponent('FolderView', FolderView);
-	//g_PageLayout.registerComponent("ThreeView", ThreeView);
-
-	/*
-	g_PageLayout.registerComponent('FileTree', function (container, state) {
-
-		console.log(container);
-
-		// Append it to the DOM
-		container.getElement().append($('<div id="NavigationWrapper"><input id="search-input" type="text"><div id="Navigation"></div></div>'));
-		//container.getElement().append($('<div id="Navigation"></div>'));
-
-		console.log(container);
-
-	});
-	*/
-
+	// Partition instance list
+	g_PageLayout.registerComponent('InstanceList', FolderView);
+	
 	// Main EBX viewer
-	g_PageLayout.registerComponent('EbxViewer', function (container, state) {
-		// Append it to the DOM
+	g_PageLayout.registerComponent('MainEbxViewer', function (container, state) {
 		container.getElement().append($('<div id="Current"></div>'));
 	});
 
-	g_PageLayout.registerComponent('EbxGraph', GraphView);
+	// Connection graph
+	g_PageLayout.registerComponent('ConnectionGraph', GraphView);
 
 	// Graph node EBX viewer
-	g_PageLayout.registerComponent('PropertyViewer', function (container, state) {
-		// Append it to the DOM
+	g_PageLayout.registerComponent('GraphEbxViewer', function (container, state) {
 		container.getElement().append($('<div id="PropertyViewer"></div>'));
 	});
-
-	/*
-	g_PageLayout.registerComponent('test', function (container, state)
-	{
-
-		// Append it to the DOM
-		container.getElement().append($(`<table id="testtable">
-											<tbody>
-												<tr class='clickable-row' data-href='url://'>
-													<td>Blah Blah</td> <td>1234567</td> <td>£158,000</td>
-												</tr>
-											</tbody>
-										</table>`));
-	});
-	*/
 
 	g_PageLayout.init();
 }
@@ -112,7 +81,7 @@ function CreateToolbar() {
 	}
 		
 	// Create dropdown
-	let s_GameSelect = document.createElement("select");
+	let s_GameSelect = document.getElementById("game-select");
 	s_GameSelect.onchange = function() {
 		s_SettingsManager.m_Settings["game"] = this.value;
 
@@ -144,30 +113,57 @@ function CreateToolbar() {
 
 	// Set active game
 	s_GameSelect.value = s_SettingsManager.getGame();
+}
 
-	// Add to page
-	s_Toolbar.appendChild(s_GameSelect);
+function CreateBookmarks() {
+	let centerContainer = document.getElementById("Current");
 
-	// Create
+	let bookmarkedPartitions = localStorage.getItem('bookmarks');
+	if (bookmarkedPartitions != null) {
+		let bookmarks = CreateList(bookmarkedPartitions, 'Bookmarks');
+		centerContainer.appendChild(bookmarks);
+	}
+
+	let recentlyVisited = localStorage.getItem('recently-visited');
+	if (recentlyVisited != null) {
+		let recents = CreateList(recentlyVisited, 'Recents');
+		centerContainer.appendChild(recents);
+	}
+}
+
+function CreateList(data, title) {
+	let listContainer = document.createElement("div");
+
+	let header = document.createElement('p');
+	header.classList.add("bookmark-list-title");
+	header.innerHTML = title;
+	listContainer.appendChild(header);
+
+	let list = document.createElement('ul');
+	list.classList.add('bookmark-list');
+	listContainer.appendChild(list)
+
+	JSON.parse(data).forEach(function(path) {
+		let item = document.createElement('li');
+		item.innerHTML = `<a href="#${path}">${path.slice(0, -5)} </a>`;
+		item.classList.add('bookmark');
+		list.appendChild(item);
+	});
+
+	return listContainer;
 }
 
 
 function LoadEbxFromHash() {
 	// Load Callback to display the primary instance (hash = path) or regular instance (hash = guids)
-	let LoadCallback = function (instance, instanceGuid = null) {
-		s_MessageSystem.ExecuteEventSync("OnPrimaryInstanceSelected", instance["$guid"])
+	let LoadCallback = function (partition, instanceGuid = null) {
+		s_MessageSystem.ExecuteEventSync("OnPrimaryInstanceSelected", partition["$guid"])
 
 		if (instanceGuid != null) {
-			LoadInstance(instance["$guid"], instanceGuid)
+			LoadInstance(partition["$guid"], instanceGuid)
 		} else {
-			LoadInstance(instance["$guid"], instance["$primaryInstance"])
+			LoadInstance(partition["$guid"], partition["$primaryInstance"])
 		}
-			
-
-		// instance['$instances'].forEach(function(element) {
-		// 	console.log("Instance ")
-		// 	console.log(element);
-		// }, this);
 	};
 
 	var hash = location.hash.replace(/^#/, '');
@@ -199,20 +195,26 @@ function LoadEbxFromHash() {
 }
 
 function LoadInstance(partitionGuid, instanceGuid) {
-	var Blueprint = s_EbxManager.FindInstance(partitionGuid, instanceGuid);
-	if (Blueprint == null) {
+	var instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid);
+	if (instance == null) {
 		return;
 	}
 		
-	//currentPartition = Blueprint["$guid"];
+	if (document.title === "instance selected") {
+		document.title = instance['$type']
+	}
+
+	// s_EbxManager.FindPartition(partitionGuid)
+	// s_MessageSystem.ExecuteEventSync("PartitionLoaded", partition["$guid"])
 
 	let s_Element = document.getElementById("Current");
 	if( s_Element != null) {
 		s_Element.innerHTML = g_EbxViewer.BuildInstance(partitionGuid, instanceGuid);
 	}
 		
-	LoadGraphInstance(Blueprint);
+	LoadGraphInstance(instance);
 }
+
 
 // Anti recursive measurements
 var CurrentlyLoaded = [];
@@ -244,7 +246,7 @@ function DisplayPartition(partition, instanceGuid) {
 
 
 
-var LayoutConfig = {
+var g_DefaultLayout = {
 	settings: {
 		hasHeaders: true,
 		constrainDragToContainer: true,
@@ -278,13 +280,13 @@ var LayoutConfig = {
 			title: '',
 			content: [{
 				type: 'component',
-				componentName: 'FileEbxTree',
+				componentName: 'DirectoryTreeView',
 				title: 'File Browser',
 
 				isClosable: false,
 			},{
 				type: 'component',
-				componentName: 'FolderView',
+				componentName: 'InstanceList',
 				title: 'Instance List',
 
 				isClosable: true,
@@ -294,20 +296,20 @@ var LayoutConfig = {
 			title: '',
 			content:[{
 				type: 'component',
-				componentName: 'EbxViewer',
+				componentName: 'MainEbxViewer',
 
 				title: "Ebx Viewer",
 				isClosable: false,
 			},{
 				type: 'component',
-				componentName: 'EbxGraph',
+				componentName: 'ConnectionGraph',
 
 				title: "Graph View",
 				isClosable: false,
 			}]
 		},{
 			type: 'component',
-			componentName: 'PropertyViewer',
+			componentName: 'GraphEbxViewer',
 
 			title: "Graph Ebx View",
 

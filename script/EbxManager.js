@@ -84,21 +84,20 @@ class EbxManager {
     
     LoadEbxFromGuid(partitionGuid, loadCallback = null, instanceGuid = null) {
         // Ghetto case sensitive fix...
-        let s_PartitionData = this.m_GuidDictionary[partitionGuid];
+        let partitionPath = this.m_GuidDictionary[partitionGuid];
 
-        if (s_PartitionData == null) 
-            s_PartitionData = this.m_GuidDictionary[partitionGuid.toLowerCase()];
+        if (partitionPath == null) 
+            partitionPath = this.m_GuidDictionary[partitionGuid.toLowerCase()];
 
-        if (s_PartitionData == null) 
-            s_PartitionData = this.m_GuidDictionary[partitionGuid.toUpperCase()];
+        if (partitionPath == null) 
+            partitionPath = this.m_GuidDictionary[partitionGuid.toUpperCase()];
 
-        if (s_PartitionData == null) 
-        {
+        if (partitionPath == null) {
             console.error("Tried to load a partition that does not exsits: " + partitionGuid)
             return false;
         }
         
-        return this.LoadEbxFromPath( s_PartitionData+ ".json", loadCallback, instanceGuid )
+        return this.LoadEbxFromPath(partitionPath + ".json", loadCallback, instanceGuid)
     }
 
 
