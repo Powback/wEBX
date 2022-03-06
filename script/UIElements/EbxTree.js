@@ -29,6 +29,9 @@ class EbxTree {
 
         // Set root folder name
         s_MessageSystem.RegisterEventHandler("OnGameLoaded", this.OnGameLoaded.bind(this));
+
+        s_MessageSystem.RegisterEventHandler("OnPrimaryInstanceSelected", this.OnFileSelected.bind(this));
+
     }
 
     CreateTreeDom() {
@@ -200,6 +203,37 @@ class EbxTree {
         }
 
         this.UpdateTreeData();
+    }
+
+    // Set root folder name 
+    OnFileSelected(partitionGuid) { 
+        let jsTree = this.m_TreeDom.jstree(true)
+        let destinationNode = jsTree.get_node(partitionGuid)
+
+        jsTree._open_to(destinationNode)
+        jsTree.select_node(destinationNode)
+
+        let recents = localStorage.getItem('recently-visited');
+        if (recents != null) {
+            recents = JSON.parse(recents)
+        } else {
+            recents = []
+        }
+ 
+        let pathArray = jsTree.get_path(destinationNode);
+        pathArray.shift()
+
+        let path = pathArray.join('/')
+
+        if (!recents.includes(path)) {
+            recents.unshift(path)
+        }
+
+        if (recents.length > 10) {
+            recents.pop()
+        }
+
+        localStorage.setItem('recently-visited', JSON.stringify(recents));
     }
 }
 
