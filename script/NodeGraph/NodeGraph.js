@@ -312,7 +312,7 @@ function ProcessDescriptor(descriptor) {
 
 }
 
-function AddSpecialNode(type, id) {
+function AddSpecialNode(type, id, instanceGuid, partitionGuid) {
 	// Node does not exist. Let's create it.
 	console.log(type + id);
 	if (graph.getNodeById(type + id) == null) {
@@ -321,8 +321,8 @@ function AddSpecialNode(type, id) {
 		nodes[type + id] = node;
 
 
-		node.partitionGuid = null;
-		node.instanceGuid = null;
+		node.partitionGuid = partitionGuid;
+		node.instanceGuid = instanceGuid;
 
 		node.id = type + id;
 
@@ -576,14 +576,14 @@ function ProcessConnection(PC, variableName, type) {
 	if (type == "Event") {
 		if (descriptors[sourceInstanceGuid] != null) {
 			if (graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]) == null)
-				sourceNode = AddSpecialNode("InputEvent", PC['Source' + variableName]["$value"]["Id"]["$value"]);
+				sourceNode = AddSpecialNode("InputEvent", PC['Source' + variableName]["$value"]["Id"]["$value"], sourceInstanceGuid, sourcePartitionGuid);
 			else
 				sourceNode = graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]);
 		}
 
 		if (descriptors[targetInstanceGuid] != null) {
 			if (graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]) == null)
-				targetNode = AddSpecialNode("OutputEvent", PC['Target' + variableName]["$value"]["Id"]["$value"]);
+				targetNode = AddSpecialNode("OutputEvent", PC['Target' + variableName]["$value"]["Id"]["$value"], targetInstanceGuid, targetPartitionGuid);
 			else
 				targetNode = graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]);
 		}
@@ -591,14 +591,14 @@ function ProcessConnection(PC, variableName, type) {
 	else if (type == "Link") {
 		if (descriptors[sourceInstanceGuid] != null) {
 			if (graph.getNodeById("InputLink" + PC["Source" + variableName]["$value"]) == null)
-				sourceNode = AddSpecialNode("InputLink", PC["Source" + variableName]["$value"]);
+				sourceNode = AddSpecialNode("InputLink", PC["Source" + variableName]["$value"], sourceInstanceGuid, sourcePartitionGuid);
 			else
 				sourceNode = graph.getNodeById("InputLink" + PC['Source' + variableName]["$value"]);
 		}
 
 		if (descriptors[targetInstanceGuid] != null) {
 			if (graph.getNodeById("OutputLink" + PC["Target" + variableName]["$value"]) == null)
-				targetNode = AddSpecialNode("OutputLink", PC["Target" + variableName]["$value"]);
+				targetNode = AddSpecialNode("OutputLink", PC["Target" + variableName]["$value"], targetInstanceGuid, targetPartitionGuid);
 			else
 				targetNode = graph.getNodeById("OutputLink" + PC["Target" + variableName]["$value"]);
 		}
@@ -608,7 +608,7 @@ function ProcessConnection(PC, variableName, type) {
 			var s_NodeId = "InputField" + PC["Source" + variableName]["$value"];
 
 			if (graph.getNodeById(s_NodeId) == null) {
-				sourceNode = AddSpecialNode("InputField", PC["Source" + variableName]["$value"]);
+				sourceNode = AddSpecialNode("InputField", PC["Source" + variableName]["$value"], sourceInstanceGuid, sourcePartitionGuid);
 
 				Object.values(descriptors[sourceInstanceGuid]["$fields"]["Fields"]["$value"]).forEach(function (value) {
 
@@ -638,7 +638,7 @@ function ProcessConnection(PC, variableName, type) {
 			var s_NodeId = "OutputField" + PC["Target" + variableName]["$value"];
 
 			if (graph.getNodeById(s_NodeId) == null) {
-				targetNode = AddSpecialNode("OutputField", PC["Target" + variableName]["$value"]);
+				targetNode = AddSpecialNode("OutputField", PC["Target" + variableName]["$value"], targetInstanceGuid, targetPartitionGuid);
 
 				Object.values(descriptors[targetInstanceGuid]["$fields"]["Fields"]["$value"]).forEach(function (value) {
 
