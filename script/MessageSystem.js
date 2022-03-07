@@ -5,7 +5,7 @@ class MessageSystem
     }
 
     // Register event handlers
-    RegisterEventHandler(id, handler) {
+    registerEventHandler(id, handler) {
         if (this.m_Handlers[id] == null) {
             this.m_Handlers[id] = [];
         }
@@ -14,7 +14,7 @@ class MessageSystem
     }
 
     // Dispatch events
-    ExecuteEventSync(id, data, resultArray = null) {
+    executeEventSync(id, data, resultArray = null) {
         if (this.m_Handlers[id] == null) {
             return false;
         }

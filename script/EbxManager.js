@@ -1,182 +1,104 @@
-
-
 class EbxManager {
     constructor() {
-        this.Reset();
-
-        this.m_PartitionLoadedCallback = [];
-        this.m_GuidDictionaryLoadedCallback = [];
+        this.reset();
     }
 
-    Reset() {
+    reset() {
         this.m_GuidDictionary = {};
         this.m_LoadedPartitions = {};
-
-        this.m_FileTree = {};
     }
 
-
-    AddParitionLoadedCallback(callback) {
-        this.m_PartitionLoadedCallback.push(callback);
+    getPartitionPath(partitionGuid) {
+        return this.m_GuidDictionary[partitionGuid] ?? "*unknownRef* " + partitionGuid.toUpperCase();
     }
 
-    AddGuidDictionaryLoadedCallback(callback) {
-        this.m_GuidDictionaryLoadedCallback.push(callback);
-    }
+    findInstance(partitionGuid, instanceGuid, shouldLoad = true) {
+        let partition = this.findPartition(partitionGuid, shouldLoad);
 
-
-    GetPartitionGuidPath(partitionGuid) {
-        if (this.m_GuidDictionary[partitionGuid] != null){
-            return this.m_GuidDictionary[partitionGuid];
+        if (partition == null || partition["$instanceGuidMap"] == null) {
+            return null;
         }
-            
-        return "*unknownRef* " + partitionGuid.toUpperCase();
+
+        return partition["$instanceGuidMap"][instanceGuid];
     }
 
-    AddPartitionGuidPath(partitionGuid, path) {
-        if( this.m_GuidDictionary[partitionGuid] != null )
-            return;
+    findPartition(partitionGuid, shouldLoad = true) {
+        if (this.m_LoadedPartitions[partitionGuid] == null && shouldLoad) {
+            this.loadPartition(partitionGuid); 
+        }
 
-        this.m_GuidDictionary[partitionGuid] = path;
+        return this.m_LoadedPartitions[partitionGuid];
     }
 
-    FindPartition(partitionGuid, shouldLoad = true) {
-        if( partitionGuid == null)
-            return null;
-
-        if( this.m_LoadedPartitions[partitionGuid] == null && shouldLoad == true )
-            this.LoadEbxFromGuid(partitionGuid); 
-
-        // Ghetto case sensitive fix
-        let s_LoadedPartition = this.m_LoadedPartitions[partitionGuid];
-
-        if (s_LoadedPartition == null)
-            s_LoadedPartition = this.m_LoadedPartitions[partitionGuid.toLowerCase()];
-
-        if (s_LoadedPartition == null)
-            s_LoadedPartition = this.m_LoadedPartitions[partitionGuid.toUpperCase()];
-
-        return s_LoadedPartition
-    }
-
-    FindInstance(partitionGuid, instanceGuid, shouldLoad = true) {
-        if (instanceGuid == null)
-            return null;
-
-        let s_Partition = this.FindPartition(partitionGuid);
-
-        if (s_Partition == null ||
-            s_Partition["InstanceGuidMap"] == null)
-            return null;
-
-
-        let s_Instance = s_Partition["InstanceGuidMap"][instanceGuid];
-
-        if (s_Instance == null)
-            s_Instance = s_Partition["InstanceGuidMap"][instanceGuid.toLowerCase()];
-
-        if (s_Instance == null)
-            s_Instance = s_Partition["InstanceGuidMap"][instanceGuid.toUpperCase()];
-
-        return s_Instance;
-    }
-
-    
-    LoadEbxFromGuid(partitionGuid, loadCallback = null, instanceGuid = null) {
-        // Ghetto case sensitive fix...
+    loadPartition(partitionGuid, loadCallback = null, instanceGuid = null) {
         let partitionPath = this.m_GuidDictionary[partitionGuid];
 
-        if (partitionPath == null) 
-            partitionPath = this.m_GuidDictionary[partitionGuid.toLowerCase()];
-
-        if (partitionPath == null) 
-            partitionPath = this.m_GuidDictionary[partitionGuid.toUpperCase()];
-
         if (partitionPath == null) {
-            console.error("Tried to load a partition that does not exsits: " + partitionGuid)
+            console.error("Could not find path for partition: " + partitionGuid)
             return false;
         }
         
-        return this.LoadEbxFromPath(partitionPath + ".json", loadCallback, instanceGuid)
+        return this.loadPartitionFromPath(partitionPath + ".json", loadCallback, instanceGuid)
     }
 
 
-    LoadEbxFromPath(path, loadCallback = null, instanceGuid = null, failedCallback = null) {
-        console.log("Loading partition " + s_SettingsManager.getGameRequestPath()+ path)
-
+    loadPartitionFromPath(path, loadCallback = null, failedCallback = null) {
         $.ajax({
             context: this,
-            url: s_SettingsManager.getGameRequestPath() + path,
+            url: s_SettingsManager.getEbxDirectoryPath() + path,
             dataType: "json",
-            //contentType: "application/json; charset=windows-1252", //iso-8859-1
             async: false,
 
             beforeSend: function(xhr) {
                 xhr.setRequestHeader('Accept', "text/html; charset=utf-8");
-                //xhr.overrideMimeType('application/json; charset=windows-1252');
             },
 
-            success: function(response) {
-                this.m_LoadedPartitions[response['$guid']] = response;
+            success: function(partition) {
+                // Build guid/instance map
+                let map = {}
+                $.each(partition['$instances'], function(index, instance) {
+                    map[instance['$guid']] = instance
+                })
+                partition['$instanceGuidMap'] = map
 
-                this.m_LoadedPartitions[response['$guid']]["InstanceGuidMap"] = {};
-
-                response['$instances'].forEach(function(element) 
-                {
-                    this.m_LoadedPartitions[response['$guid']]["InstanceGuidMap"][element['$guid']] = element;
-                }, this);
-
-                this.AddPartitionGuidPath( response['$guid'], path );
-
-                this.m_PartitionLoadedCallback.forEach( function(callback)      // TODO: Dispatch event instead of callback system?
-                {
-                    callback( this );
-                }, response);
-
-                if (loadCallback != null)
-                    loadCallback( response, instanceGuid );
+                // Save partition
+                this.m_LoadedPartitions[partition['$guid']] = partition;
+                
+                
+                if (loadCallback != null) {
+                    loadCallback(partition);
+                }     
             },
 
             error: function(xhr, status, error) {
                 console.log(xhr.responseText);
-                console.log("Failed to load partition: "  + s_SettingsManager.getGameRequestPath() + "/" + path)
+                console.log("Failed to load partition: "  + s_SettingsManager.getEbxDirectoryPath() + "/" + path)
                 
-                if (failedCallback != null)
+                if (failedCallback != null) {
                     failedCallback(path)
+                } 
             },
         });
     }
 
+    loadGuidDictionary() {
+        this.reset();
 
-    LoadGuidTable() {
-        this.Reset();
-
-        console.log( "Loading guidTable \"" + s_SettingsManager.getGameRequestPath() + "guidDictionary.json" +"\"");
         $.ajax({
             context: this,
-            url: s_SettingsManager.getGameRequestPath() + "guidDictionary.json",
+            url: s_SettingsManager.getEbxDirectoryPath() + "guidDictionary.json",
             dataType: "json",
-            success: function(response) 
-            {
-                console.log("guidDictionary loaded!");
+            success: function(dictionary) {
+                this.m_GuidDictionary = dictionary;
 
-                
-                this.m_GuidDictionary = response;
-
-                this.m_GuidDictionaryLoadedCallback.forEach( function(callback)
-                {
-                    callback( this, this.m_GuidDictionary );
-                }, this);
+                s_MessageSystem.executeEventSync("OnGuidDictionaryLoaded", dictionary);
             },
-            error: function(xhr, status, error) 
-            {
-                console.log(xhr.responseText);
-
-                console.log("Failed to load guidDictionary.json: " + s_SettingsManager.getGameRequestPath()  + "/guidDictionary.json")
+            error: function(xhr, status, error) {
+                console.log(xhr);
+                console.log("Failed to load guidDictionary.json: " + s_SettingsManager.getEbxDirectoryPath()  + "guidDictionary.json")
             }
         });
-
     }
 }
 
-var s_EbxManager = new EbxManager();
+var s_EbxManager = new EbxManager()

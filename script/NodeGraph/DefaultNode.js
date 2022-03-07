@@ -27,7 +27,7 @@ class DefaultNode extends LiteGraph.LGraphNode {
 
 		let s_CurrentHashLocation =  "#" + this.partitionGuid + "&" + this.instanceGuid;
 	
-		var s_Data = s_EbxManager.FindInstance(this.partitionGuid, this.instanceGuid);
+		var s_Data = s_EbxManager.findInstance(this.partitionGuid, this.instanceGuid);
 
 		if( s_Data != null )
 		{

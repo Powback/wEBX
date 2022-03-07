@@ -9,10 +9,10 @@ class HashManager {
     }
     
     // Request the hash files from the server 
-	LoadHashes() {
+	loadHashes() {
         $.ajax({
 			context: this,
-			url: s_SettingsManager.getHashPath() + "eventHashes.json",
+			url: s_SettingsManager.getHashDirectoryPath() + "eventHashes.json",
 			async: false,
 			dataType: "json",
             success: function(response) {
@@ -22,7 +22,7 @@ class HashManager {
 		});
 		$.ajax({
 			context: this,
-			url: s_SettingsManager.getHashPath() + "assetHashes.json",
+			url: s_SettingsManager.getHashDirectoryPath() + "assetHashes.json",
 			async: false,
 			dataType: "json",
             success: function(response) {
@@ -32,7 +32,7 @@ class HashManager {
 		});
 		$.ajax({
 			context: this,
-			url: s_SettingsManager.getHashPath() + "InterfaceIDs.json",	// TODO: fix case
+			url: s_SettingsManager.getHashDirectoryPath() + "InterfaceIDs.json",	// TODO: fix case
 			async: false,
 			dataType: "json",
             success: function(response) {

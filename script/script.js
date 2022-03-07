@@ -1,4 +1,6 @@
 function Load() {
+	var s_ContextMenu = new ContextMenu()
+	
 	// Create GoldenLayout panes
 	CreatePageLayout();
 	// Create game selection toolbar
@@ -8,25 +10,21 @@ function Load() {
 
 	// Change hash when selecting a file in the folder tree or instance list
 	// A hash change callback will update the page
-	s_MessageSystem.RegisterEventHandler("OnFileSelected", function(path) {
+	s_MessageSystem.registerEventHandler("OnFileSelected", function(path) {
 		document.title = getFilename(path)
 		window.location.hash = "#" + path;
 	});
 
-	s_MessageSystem.RegisterEventHandler("OnInstanceSelected", function(instance) {
-		document.title = "instance selected"
+	s_MessageSystem.registerEventHandler("OnInstanceSelected", function(instance) {
+		document.title = ""
 		window.location.hash = "#" + instance["partitionGuid"] + "&" + instance["instanceGuid"];
 	});
 
-	s_HashManager.LoadHashes();
+	s_HashManager.loadHashes();
 
-	s_EbxManager.AddGuidDictionaryLoadedCallback(function(self, dictionary) {
-		s_MessageSystem.ExecuteEventSync("OnGuidDictionaryLoaded", dictionary);
-	})
+	s_EbxManager.loadGuidDictionary();
 
-	s_EbxManager.LoadGuidTable();
-
-	s_MessageSystem.ExecuteEventSync("OnGameLoaded", s_SettingsManager.getGame());
+	s_MessageSystem.executeEventSync("OnGameLoaded", s_SettingsManager.getGame());
 }
 
 window.onload = Load;
@@ -87,7 +85,7 @@ function CreateToolbar() {
 
 		s_SettingsManager.saveSettings();
 
-		s_EbxManager.LoadGuidTable();
+		s_EbxManager.loadGuidDictionary();
 	};
 
 	// TODO: Get options from server?
@@ -126,7 +124,7 @@ function CreateBookmarks() {
 
 	let recentlyVisited = localStorage.getItem('recently-visited');
 	if (recentlyVisited != null) {
-		let recents = CreateList(recentlyVisited, 'Recents');
+		let recents = CreateList(recentlyVisited, 'Recently visited');
 		centerContainer.appendChild(recents);
 	}
 }
@@ -157,7 +155,7 @@ function CreateList(data, title) {
 function LoadEbxFromHash() {
 	// Load Callback to display the primary instance (hash = path) or regular instance (hash = guids)
 	let LoadCallback = function (partition, instanceGuid = null) {
-		s_MessageSystem.ExecuteEventSync("OnPrimaryInstanceSelected", partition["$guid"])
+		s_MessageSystem.executeEventSync("OnPrimaryInstanceSelected", partition["$guid"])
 
 		if (instanceGuid != null) {
 			LoadInstance(partition["$guid"], instanceGuid)
@@ -174,7 +172,7 @@ function LoadEbxFromHash() {
 	// Hash is guid pair
 	var params = hash.split('&');
 	if (params.length == 2)	{
-		s_EbxManager.LoadEbxFromGuid(params[0], LoadCallback, params[1]);
+		s_EbxManager.loadPartition(params[0], LoadCallback, params[1]);
 		return;
 	}
 
@@ -184,28 +182,28 @@ function LoadEbxFromHash() {
 	// If hash contains json, get the path and load the selected partition.
 	let s_DotIndex = hash.lastIndexOf(".");
 	if (s_DotIndex != -1) {
-		let s_CleanedHash = hash.substring(0, s_DotIndex);
+		let cleanedHash = hash.substring(0, s_DotIndex);
 		
-		s_EbxManager.LoadEbxFromPath(s_CleanedHash + ".json", LoadCallback);
+		s_EbxManager.loadPartitionFromPath(cleanedHash + ".json", LoadCallback);
 	} else {
-		s_EbxManager.LoadEbxFromGuid(hash, LoadCallback);
+		s_EbxManager.loadPartition(hash, LoadCallback);
 	}
 
 	// TODO: Improve path vs guid handling
 }
 
 function LoadInstance(partitionGuid, instanceGuid) {
-	var instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid);
+	var instance = s_EbxManager.findInstance(partitionGuid, instanceGuid);
 	if (instance == null) {
 		return;
 	}
 		
-	if (document.title === "instance selected") {
+	if (document.title === "") {
 		document.title = instance['$type']
 	}
 
-	// s_EbxManager.FindPartition(partitionGuid)
-	// s_MessageSystem.ExecuteEventSync("PartitionLoaded", partition["$guid"])
+	// s_EbxManager.findPartition(partitionGuid)
+	// s_MessageSystem.executeEventSync("PartitionLoaded", partition["$guid"])
 
 	let s_Element = document.getElementById("Current");
 	if( s_Element != null) {

@@ -1,59 +1,34 @@
 class SettingsManager {
     constructor() {
-        let DefaultSettings = {
+        let defaultSettings = {
             "game": "Venice", //"Venice" "Warsaw" "Tunguska" "Casablanca" "rime-dump"
-            "gamePath": "./Games/", // "http://webx.powback.com/"
-            "hashPath": "./Hash/"
+            "gameDirectoryPath": "./Games/", // "http://webx.powback.com/"
+            "hashDirectoryPath": "./Hash/"
         };
 
-        this.m_Settings = JSON.parse(localStorage.getItem("webx_settings"));
-
-        if (this.m_Settings == null) {
-            this.m_Settings = DefaultSettings;
-
-        } else {
-            for(let Key in DefaultSettings) {
-                if (this.m_Settings[Key] == null) {
-                    this.m_Settings[Key] = DefaultSettings[Key];
-                }
-            }
-        }
+        this.m_Settings = JSON.parse(localStorage.getItem("webx-settings")) || defaultSettings;
 
         this.saveSettings();
     }
 
     saveSettings() {
-        if (this.m_Settings == null) {
-            return;
-        }
-            
-        localStorage.setItem('webx_settings', JSON.stringify(this.m_Settings));
-    }
-
-    getSettingsPath(key) {
-        let s_DataPath = this.m_Settings[key];
-
-        if( s_DataPath != "" && s_DataPath != null ) {
-            return s_DataPath;
-        }
-            
-        return "./";
+        localStorage.setItem('webx-settings', JSON.stringify(this.m_Settings));
     }
 
     getGame() {
         return this.m_Settings["game"];
     }
 
-    getGameRequestPath() {
-        return this.getGamePath() + this.m_Settings["game"] + "/";
+    getEbxDirectoryPath() {
+        return this.getGameDirectoryPath() + this.getGame() + "/";
     }
 
-    getGamePath() {
-        return this.getSettingsPath("gamePath");
+    getGameDirectoryPath() {
+        return this.m_Settings["gameDirectoryPath"] || "./";
     }
 
-    getHashPath() {
-        return this.getSettingsPath("hashPath");
+    getHashDirectoryPath() {
+        return this.m_Settings["hashDirectoryPath"] || "./";
     }
 }
 

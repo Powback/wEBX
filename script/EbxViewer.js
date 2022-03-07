@@ -22,7 +22,7 @@ class EbxViewer {
 			return s_Cached;
 		}
 
-		var s_Instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid)
+		var s_Instance = s_EbxManager.findInstance(partitionGuid, instanceGuid)
 		if (s_Instance == null) {
 			return null;
 		}
@@ -34,7 +34,7 @@ class EbxViewer {
 		s_Content += 
 			`<h1 class="${s_IsLocalRef ? "localRef" : "remoteRef"}">
 				${s_Instance["$type"]}
-				${s_IsLocalRef ? `<partitionReference>${s_EbxManager.GetPartitionGuidPath(partitionGuid)}</partitionReference>` : ""}
+				${s_IsLocalRef ? `<partitionReference>${s_EbxManager.getPartitionPath(partitionGuid)}</partitionReference>` : ""}
 			</h1>`
 
 		// Instance and partition guids
@@ -207,7 +207,7 @@ class EbxViewer {
 
 
 
-		var Instance = s_EbxManager.FindInstance(PartitionGuid, InstanceGuid, false);
+		var Instance = s_EbxManager.findInstance(PartitionGuid, InstanceGuid, false);
 
 		if (Instance != null)
 		{
@@ -226,7 +226,7 @@ class EbxViewer {
 		else
 		{
 			content += `${instance["$type"]}
-				<partitionReference>${s_EbxManager.GetPartitionGuidPath(PartitionGuid)}</partitionReference>
+				<partitionReference>${s_EbxManager.getPartitionPath(PartitionGuid)}</partitionReference>
 				</h1>
 				
 				<div class="GuidReferences">
@@ -246,7 +246,7 @@ class EbxViewer {
 	HandleReferencePost(partitionGuid, instanceGuid, parentPartition) {
 		var content = "";
 
-		var Instance = s_EbxManager.FindInstance(partitionGuid, instanceGuid);
+		var Instance = s_EbxManager.findInstance(partitionGuid, instanceGuid);
 
 		if (Instance != null)
 			content += this.BuildInstance(partitionGuid, instanceGuid, parentPartition);

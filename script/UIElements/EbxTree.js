@@ -25,12 +25,12 @@ class EbxTree {
         this._container.getElement().append(this.m_TreeDom);
 
         // Build folder hierarchy from the guidDictionary
-        s_MessageSystem.RegisterEventHandler("OnGuidDictionaryLoaded", this.OnGuidDictionaryLoaded.bind(this));
+        s_MessageSystem.registerEventHandler("OnGuidDictionaryLoaded", this.OnGuidDictionaryLoaded.bind(this));
 
         // Set root folder name
-        s_MessageSystem.RegisterEventHandler("OnGameLoaded", this.OnGameLoaded.bind(this));
+        s_MessageSystem.registerEventHandler("OnGameLoaded", this.OnGameLoaded.bind(this));
 
-        s_MessageSystem.RegisterEventHandler("OnPrimaryInstanceSelected", this.OnFileSelected.bind(this));
+        s_MessageSystem.registerEventHandler("OnPrimaryInstanceSelected", this.OnFileSelected.bind(this));
 
     }
 
@@ -91,7 +91,7 @@ class EbxTree {
                 var path = data.instance.get_path(data.node,'/').replace(s_SettingsManager.getGame() + "/", "");
 
                 // Send partition path to be loaded
-                s_MessageSystem.ExecuteEventSync("OnFileSelected", path);
+                s_MessageSystem.executeEventSync("OnFileSelected", path);
             
             // Preload all partitions in a folder when the folder is clicked
             } else if (data.node.type == "folder") {
@@ -114,7 +114,7 @@ class EbxTree {
                 });
 
                 // Send partition paths to be preloaded
-                s_MessageSystem.ExecuteEventSync("OnFolderSelected", eventData);
+                s_MessageSystem.executeEventSync("OnFolderSelected", eventData);
             }
         });
 

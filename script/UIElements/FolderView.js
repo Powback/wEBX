@@ -21,8 +21,8 @@ class FolderView {
         this._container.getElement().append(this.m_Dom);
 
         //Register handler
-        s_MessageSystem.RegisterEventHandler("OnFolderSelected", this.OnFolderSelected.bind(this));
-        s_MessageSystem.RegisterEventHandler("OnPrimaryInstanceSelected", this.OnPrimaryInstanceSelected.bind(this));
+        s_MessageSystem.registerEventHandler("OnFolderSelected", this.OnFolderSelected.bind(this));
+        s_MessageSystem.registerEventHandler("OnPrimaryInstanceSelected", this.OnPrimaryInstanceSelected.bind(this));
     }
 
     InitTable() {
@@ -62,7 +62,7 @@ class FolderView {
         type.html(tableData["type"]);
 
         let Callback = function(e, data) {
-            s_MessageSystem.ExecuteEventSync("OnInstanceSelected", {
+            s_MessageSystem.executeEventSync("OnInstanceSelected", {
                 "partitionGuid": tableData["partitionGuid"],
                 "instanceGuid": tableData["instanceGuid"]
             });
@@ -79,7 +79,7 @@ class FolderView {
 
         this.InitTable();
 
-        let Partition = s_EbxManager.FindPartition(partitionGuid)
+        let Partition = s_EbxManager.findPartition(partitionGuid)
         
         if(Partition["$instances"] == null)
             return;
@@ -113,7 +113,7 @@ class FolderView {
             let Path = data["children"][Key];
 
             s_EbxManager.LoadEbxFromPath(Path, function(result, instanceGuid) {
-                let Instance = s_EbxManager.FindInstance(result["$guid"], result["$primaryInstance"] );
+                let Instance = s_EbxManager.findInstance(result["$guid"], result["$primaryInstance"] );
 
                 let TypeName = ( Instance["$type"] != null ? Instance["$type"] : "<unknown>");
 

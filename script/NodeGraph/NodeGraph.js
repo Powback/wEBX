@@ -142,7 +142,8 @@ function Reset() {
 	canvas = new LGraphCanvas("#eventGraph", graph);
 	canvas.render_only_selected = false
 	canvas.background_image = null;
-	canvas.resize($(window).width() - 10, $(window).height() - 10);
+	canvas.allow_searchbox = false
+	canvas.resize($(window).width() - 10, $(window).height() - 10); // TODO: set proper dimensions
 
 }
 
@@ -206,13 +207,13 @@ function HandleConnections(MainInstance) {
 
 	if (MainInstance["$fields"]["Descriptor"] != null &&
 		MainInstance["$fields"]["Descriptor"]["$value"] != null) {
-		ProcessDescriptor(s_EbxManager.FindInstance(MainInstance["$fields"]["Descriptor"]["$value"]["$partitionGuid"],
+		ProcessDescriptor(s_EbxManager.findInstance(MainInstance["$fields"]["Descriptor"]["$value"]["$partitionGuid"],
 			MainInstance["$fields"]["Descriptor"]["$value"]["$instanceGuid"]));
 	}
 
 	if (MainInstance["$fields"]["Interface"] != null &&
 		MainInstance["$fields"]["Interface"]["$value"] != null) {
-		ProcessDescriptor(s_EbxManager.FindInstance(MainInstance["$fields"]["Interface"]["$value"]["$partitionGuid"],
+		ProcessDescriptor(s_EbxManager.findInstance(MainInstance["$fields"]["Interface"]["$value"]["$partitionGuid"],
 			MainInstance["$fields"]["Interface"]["$value"]["$instanceGuid"]));
 	}
 
@@ -259,7 +260,7 @@ function HandleUIConnections(Instance) {
 
 	// Connections
 	Object.values(Instance["$fields"]["Connections"]["$value"]).forEach(function (NodeConnection) {
-		ProcessUIConnection(s_EbxManager.FindInstance(NodeConnection["$partitionGuid"],
+		ProcessUIConnection(s_EbxManager.findInstance(NodeConnection["$partitionGuid"],
 			NodeConnection["$instanceGuid"]));
 	});
 }
@@ -268,7 +269,7 @@ function ProcessDescriptor(descriptor) {
 	if (descriptor == null)
 		return;
 
-	descriptors[descriptor["$guid"]] = descriptor; //TODO: add partition to decriptor
+	descriptors[descriptor["$guid"]] = descriptor; //TODO: add partition to descriptor
 
 	console.log(descriptor);
 
@@ -355,7 +356,7 @@ function AddSpecialNode(type, id) {
 
 
 function ProcessUINode(NodeReference) {
-	var NodeInstance = s_EbxManager.FindInstance(NodeReference["$partitionGuid"],
+	var NodeInstance = s_EbxManager.findInstance(NodeReference["$partitionGuid"],
 		NodeReference["$instanceGuid"])
 
 	if (NodeInstance == null)
@@ -387,13 +388,13 @@ function ProcessUINode(NodeReference) {
 
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(NodeInstance["$fields"]["In"]["$value"]["$partitionGuid"],
+				s_EbxManager.findInstance(NodeInstance["$fields"]["In"]["$value"]["$partitionGuid"],
 					NodeInstance["$fields"]["In"]["$value"]["$instanceGuid"]),
 				false);
 
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(NodeInstance["$fields"]["Out"]["$value"]["$partitionGuid"],
+				s_EbxManager.findInstance(NodeInstance["$fields"]["Out"]["$value"]["$partitionGuid"],
 					NodeInstance["$fields"]["Out"]["$value"]["$instanceGuid"]),
 				true);
 
@@ -402,14 +403,14 @@ function ProcessUINode(NodeReference) {
 		case "ComparisonLogicNode":
 			Object.values(NodeInstance["$fields"]["Outputs"]["$value"]).forEach(function (object) {
 				AddNodePort(node,
-					s_EbxManager.FindInstance(object["$partitionGuid"],
+					s_EbxManager.findInstance(object["$partitionGuid"],
 						object["$instanceGuid"]),
 					true);
 			});
 
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(NodeInstance["$fields"]["In"]["$value"]["$partitionGuid"],
+				s_EbxManager.findInstance(NodeInstance["$fields"]["In"]["$value"]["$partitionGuid"],
 					NodeInstance["$fields"]["In"]["$value"]["$instanceGuid"]),
 				false);
 
@@ -419,7 +420,7 @@ function ProcessUINode(NodeReference) {
 		case "InstanceInputNode":
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(NodeInstance["$fields"]["Out"]["$value"]["$partitionGuid"],
+				s_EbxManager.findInstance(NodeInstance["$fields"]["Out"]["$value"]["$partitionGuid"],
 					NodeInstance["$fields"]["Out"]["$value"]["$instanceGuid"]),
 				true);
 			break;
@@ -429,7 +430,7 @@ function ProcessUINode(NodeReference) {
 			AddInputMember(node, "Id - " + s_HashManager.GetHashResult(NodeInstance["$fields"]["Id"]["$value"]));
 
 			AddNodePort(node,
-				s_EbxManager.FindInstance(NodeInstance["$fields"]["In"]["$value"]["$partitionGuid"],
+				s_EbxManager.findInstance(NodeInstance["$fields"]["In"]["$value"]["$partitionGuid"],
 					NodeInstance["$fields"]["In"]["$value"]["$instanceGuid"]),
 				false);
 			break;
@@ -455,14 +456,14 @@ function ProcessUINode(NodeReference) {
 
 			Object.values(NodeInstance["$fields"]["Outputs"]["$value"]).forEach(function (object) {
 				AddNodePort(node,
-					s_EbxManager.FindInstance(object["$partitionGuid"],
+					s_EbxManager.findInstance(object["$partitionGuid"],
 						object["$instanceGuid"]),
 					true);
 			});
 
 			Object.values(NodeInstance["$fields"]["Inputs"]["$value"]).forEach(function (object) {
 				AddNodePort(node,
-					s_EbxManager.FindInstance(object["$partitionGuid"],
+					s_EbxManager.findInstance(object["$partitionGuid"],
 						object["$instanceGuid"]),
 					false);
 			});
@@ -500,8 +501,8 @@ function ProcessUIConnection(PC) {
 	var targetInstanceGuid = PC["$fields"]["TargetNode"]["$value"]["$instanceGuid"];
 
 
-	var sourceInstance = s_EbxManager.FindInstance(sourcePartitionGuid, sourceInstanceGuid);
-	var targetInstance = s_EbxManager.FindInstance(targetPartitionGuid, targetInstanceGuid);
+	var sourceInstance = s_EbxManager.findInstance(sourcePartitionGuid, sourceInstanceGuid);
+	var targetInstance = s_EbxManager.findInstance(targetPartitionGuid, targetInstanceGuid);
 
 
 	if (sourceInstance == null ||
@@ -520,11 +521,11 @@ function ProcessUIConnection(PC) {
 		return;
 	}
 
-	var sourcePort = s_EbxManager.FindInstance(PC["$fields"]["SourcePort"]["$value"]["$partitionGuid"],
+	var sourcePort = s_EbxManager.findInstance(PC["$fields"]["SourcePort"]["$value"]["$partitionGuid"],
 		PC["$fields"]["SourcePort"]["$value"]["$instanceGuid"]);
 
 
-	var targetPort = s_EbxManager.FindInstance(PC["$fields"]["TargetPort"]["$value"]["$partitionGuid"],
+	var targetPort = s_EbxManager.findInstance(PC["$fields"]["TargetPort"]["$value"]["$partitionGuid"],
 		PC["$fields"]["TargetPort"]["$value"]["$instanceGuid"]);
 
 	if (sourcePort == null ||
@@ -558,8 +559,8 @@ function ProcessConnection(PC, variableName, type) {
 	var targetInstanceGuid = PC["Target"]["$value"]["$instanceGuid"]
 
 
-	var sourceInstance = s_EbxManager.FindInstance(sourcePartitionGuid, sourceInstanceGuid);
-	var targetInstance = s_EbxManager.FindInstance(targetPartitionGuid, targetInstanceGuid);
+	var sourceInstance = s_EbxManager.findInstance(sourcePartitionGuid, sourceInstanceGuid);
+	var targetInstance = s_EbxManager.findInstance(targetPartitionGuid, targetInstanceGuid);
 
 	if (sourceInstance == null ||
 		targetInstance == null) {
@@ -759,8 +760,8 @@ function AddFields(PC, source, target, variableName, type) {
 
 
 
-	var sourceInstance = s_EbxManager.FindInstance(PC["Source"]["$value"]["$partitionGuid"], PC["Source"]["$value"]["$instanceGuid"]);
-	var targetInstance = s_EbxManager.FindInstance(PC["Target"]["$value"]["$partitionGuid"], PC["Target"]["$value"]["$instanceGuid"]);
+	var sourceInstance = s_EbxManager.findInstance(PC["Source"]["$value"]["$partitionGuid"], PC["Source"]["$value"]["$instanceGuid"]);
+	var targetInstance = s_EbxManager.findInstance(PC["Target"]["$value"]["$partitionGuid"], PC["Target"]["$value"]["$instanceGuid"]);
 
 	if (sourceInstance == null ||
 		targetInstance == null) {
@@ -887,7 +888,7 @@ function AddSubFields(node, instance) {
 				key == "Mesh" ||
 				key == "GraphAsset") {
 				if (instance["$fields"][key]["$value"] != null) {
-					var value = key + ": " + s_EbxManager.GetPartitionGuidPath(instance["$fields"][key]["$value"]["$partitionGuid"]);
+					var value = key + ": " + s_EbxManager.getPartitionPath(instance["$fields"][key]["$value"]["$partitionGuid"]);
 				}
 				else {
 					var value = "nullRef";
@@ -917,7 +918,7 @@ function AddSubFields(node, instance) {
 				var value = key + ": " + instance["$fields"][key]["$enumValue"];
 			}
 			if (key == "DataSource") {
-				var value = key + ": " + s_EbxManager.GetPartitionGuidPath(instance["$fields"][key]["$value"]["DataCategory"]["$value"]["$partitionGuid"]);
+				var value = key + ": " + s_EbxManager.getPartitionPath(instance["$fields"][key]["$value"]["DataCategory"]["$value"]["$partitionGuid"]);
 				node.addInput(value, LiteGraph.EVENT,
 					{
 						locked: true
