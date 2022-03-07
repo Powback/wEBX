@@ -10,21 +10,20 @@ class IONode extends LiteGraph.LGraphNode {
 	}
 
 	onSelected() {
-		if( this.partitionGuid == null ||
-			this.instanceGuid == null)
+		if (this.partitionGuid == null || this.instanceGuid == null) {
 			return;
-
-		var instance = g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid)
+    }
+    
+		var instance = g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid);
 
 		if (instance == null) {
 			return;
 		}
 
 		// Clear viewer and build descriptor
-		$("#PropertyViewer").html("");
-		$("#PropertyViewer").append(instance);
-	}
-}
+		$("#PropertyViewer").html(instance);
+  }
+};
 
 
 class InputEvent extends IONode {
