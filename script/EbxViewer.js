@@ -4,6 +4,8 @@ class EbxViewer {
 		this.m_EbxCache = [];
 
 		this.m_TypeHandlers = {};
+
+		this.latestInstance = null;
 	}
 
 	AddToCache(key, data) {
@@ -19,6 +21,15 @@ class EbxViewer {
 		if (s_Cached != null) {
 			console.log("Using cached ebx: [partition | instance]" + partitionGuid + " | " + instanceGuid);
 
+			if (this.latestInstance != null && this.latestInstance == s_Cached) {
+				console.log("Instance already displayed.")
+				return null;
+			}
+
+			if (parentPartition == null) {
+				this.latestInstance = s_Cached;
+			}
+
 			return s_Cached;
 		}
 
@@ -26,6 +37,8 @@ class EbxViewer {
 		if (s_Instance == null) {
 			return null;
 		}
+
+		this.latestInstance = s_Instance;
 			
 		let s_Content = "";
 		let s_IsLocalRef = partitionGuid == parentPartition // doesnt work because 'parentPartition' is primary instance guid instead of partition guid

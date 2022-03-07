@@ -13,10 +13,15 @@ class DefaultNode extends LiteGraph.LGraphNode {
 		if( this.partitionGuid == null ||
 			this.instanceGuid == null)
 			return;
-			
-		$("#PropertyViewer").html("");
 
-		$("#PropertyViewer").append(g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid));
+		var instance = g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid)
+
+		if (instance == null) {
+			return;
+		}
+
+		$("#PropertyViewer").html("");
+		$("#PropertyViewer").append(instance);
 	}
 
 
