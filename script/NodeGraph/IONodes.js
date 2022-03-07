@@ -10,7 +10,9 @@ class IONode extends LiteGraph.LGraphNode {
 	}
 
 	onSelected() {
-		console.log(this.id);
+		// Clear viewer and build descriptor
+		$("#PropertyViewer").html("");
+		$("#PropertyViewer").append(g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid));
 	}
 }
 
