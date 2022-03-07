@@ -10,9 +10,12 @@ class IONode extends LiteGraph.LGraphNode {
 	}
 
 	onSelected() {
+		let div = $("#PropertyViewer")
+		if (div[0].childNodes.length != 0 && div[0].childNodes[0].innerText == "InterfaceDescriptorData") {
+			return
+		}
 		// Clear viewer and build descriptor
-		$("#PropertyViewer").html("");
-		$("#PropertyViewer").append(g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid));
+		div.html(g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid));
 	}
 }
 
