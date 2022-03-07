@@ -1,6 +1,4 @@
 function Load() {
-	var s_ContextMenu = new ContextMenu()
-	
 	// Create GoldenLayout panes
 	CreatePageLayout();
 	// Create game selection toolbar
