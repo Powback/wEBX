@@ -38,8 +38,10 @@ class EbxViewer {
 			return null;
 		}
 
-		this.latestInstance = s_Instance;
-			
+		if (parentPartition == null) {
+			this.latestInstance = s_Instance;
+		}
+	
 		let s_Content = "";
 		let s_IsLocalRef = partitionGuid == parentPartition // doesnt work because 'parentPartition' is primary instance guid instead of partition guid
 		
