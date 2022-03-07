@@ -5,7 +5,7 @@ class EbxViewer {
 
 		this.m_TypeHandlers = {};
 
-		this.latestInstance = null;
+		this.latestInstanceGuid = null;
 	}
 
 	AddToCache(key, data) {
@@ -21,13 +21,13 @@ class EbxViewer {
 		if (s_Cached != null) {
 			console.log("Using cached ebx: [partition | instance]" + partitionGuid + " | " + instanceGuid);
 
-			if (this.latestInstance != null && this.latestInstance == s_Cached) {
+			if (this.latestInstanceGuid != null && this.latestInstanceGuid == instanceGuid) {
 				console.log("Instance already displayed.")
 				return null;
 			}
 
 			if (parentPartition == null) {
-				this.latestInstance = s_Cached;
+				this.latestInstanceGuid = instanceGuid;
 			}
 
 			return s_Cached;
@@ -39,7 +39,7 @@ class EbxViewer {
 		}
 
 		if (parentPartition == null) {
-			this.latestInstance = s_Instance;
+			this.latestInstanceGuid = instanceGuid;
 		}
 	
 		let s_Content = "";
