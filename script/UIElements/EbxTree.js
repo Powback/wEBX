@@ -164,6 +164,9 @@ class EbxTree {
     // The guid dictionary has guid/path pairs for all partitions/files.
     // Build the folder structure from the paths.
     OnGuidDictionaryLoaded(dictionary) {
+
+        this.m_Data.children = [];
+        
         // Iterate all partitions
         for (let [guid, path] of Object.entries(dictionary)) {
             let folderNames = getPaths(path);
@@ -207,30 +210,33 @@ class EbxTree {
 
     // Set root folder name 
     OnFileSelected(partitionGuid) { 
-        let jsTree = this.m_TreeDom.jstree(true)
-        let destinationNode = jsTree.get_node(partitionGuid)
+        let jsTree = this.m_TreeDom.jstree(true);
+        let destinationNode = jsTree.get_node(partitionGuid);
 
-        jsTree._open_to(destinationNode)
-        jsTree.select_node(destinationNode)
+        if (destinationNode == false)
+            return;
+
+        jsTree._open_to(destinationNode);
+        jsTree.select_node(destinationNode);
 
         let recents = localStorage.getItem('recently-visited');
         if (recents != null) {
-            recents = JSON.parse(recents)
+            recents = JSON.parse(recents);
         } else {
             recents = []
         }
  
         let pathArray = jsTree.get_path(destinationNode);
-        pathArray.shift()
+        pathArray.shift();
 
         let path = pathArray.join('/')
 
         if (!recents.includes(path)) {
-            recents.unshift(path)
+            recents.unshift(path);
         }
 
         if (recents.length > 10) {
-            recents.pop()
+            recents.pop();
         }
 
         localStorage.setItem('recently-visited', JSON.stringify(recents));

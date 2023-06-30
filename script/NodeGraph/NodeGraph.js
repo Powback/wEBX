@@ -2,15 +2,53 @@ var graph = null;
 var nodes = [];
 var Interfaces = [];
 var canvas = null;
-var chartNode = [];
-var edges = [];
-var cy = null;
 var unknownHashes = [];
 var knownIDs = [];
 var descriptors = [];
 
+
+var dagre_graph = null;
+
 LGraphNode.prototype.disconnectInput = function(slot) {
 	return true;
+}
+
+
+function OnObjectsSelected_Nodes(data)
+{
+
+	let s_Nodes = [];
+
+	for (let s_GuidIndex in data["$instanceGuids"])
+	{
+		let s_Guid = data["$instanceGuids"][s_GuidIndex];
+
+		
+		
+		let s_Node = nodes[s_Guid.toLowerCase()];
+		
+		if (s_Node == null)
+			continue;
+
+		s_Nodes.push(s_Node);
+	}
+
+	for (let s_NodeGuid in nodes)
+	{
+		let s_Node = nodes[s_NodeGuid];
+
+		s_Node.m_EnableSelectCallback = false;
+	}
+
+
+	canvas.selectNodes(s_Nodes);
+
+	for (let s_NodeGuid in nodes)
+	{
+		let s_Node = nodes[s_NodeGuid];
+
+		s_Node.m_EnableSelectCallback = true;
+	}
 }
 
 // The blueprint node graph is made using LiteGraph
@@ -29,6 +67,7 @@ class CytoscapeSorter {
 		var index = this.m_ChartNode.length;
 		this.m_ChartNode[index] =
 		{
+			
 			data:
 			{
 				id: instance["$guid"]
@@ -61,10 +100,18 @@ class Graph {
 
 
 		graph.start()
-		canvas = new LGraphCanvas("#eventGraph", graph);
+		canvas = new LGraphCanvas("#eventGraph", graph, {"autoresize": true});
 		canvas.render_only_selected = false
 		canvas.background_image = null;
 		canvas.resize($(window).width() - 10, $(window).height() - 10);
+
+
+		dagre_graph = new dagre.graphlib.Graph();
+
+		
+
+		// Default to assigning a new object as a label for each new edge.
+		dagre_graph.setDefaultEdgeLabel(function() { return {}; });
 	}
 
 	Destroy() {
@@ -139,20 +186,15 @@ function Reset() {
 	//LGraphCanvas.link_type_colors["Link"] = "#4ea3d8"
 
 	graph.start()
-	canvas = new LGraphCanvas("#eventGraph", graph);
+	canvas = new LGraphCanvas("#eventGraph", graph, {"autoresize": true});
 	canvas.render_only_selected = false
 	canvas.background_image = null;
 	canvas.allow_searchbox = false
-	canvas.resize($(window).width() - 10, $(window).height() - 10); // TODO: set proper dimensions
+	//canvas.resize($(window).width() - 10, $(window).height() - 10); // TODO: set proper dimensions
 
 }
 
 function Destroy() {
-
-	if (cy != null) {
-		cy.destroy();
-		cy = null;
-	}
 
 	if (graph != null) {
 		graph.clear();
@@ -164,6 +206,12 @@ function Destroy() {
 		canvas = undefined;
 	}
 
+
+	dagre_graph = new dagre.graphlib.Graph();
+
+	// Default to assigning a new object as a label for each new edge.
+	dagre_graph.setDefaultEdgeLabel(function() { return {}; });
+	
 	graph = new LGraph();
 	graph.clear();
 
@@ -274,41 +322,42 @@ function ProcessDescriptor(descriptor) {
 	console.log(descriptor);
 
 	/*
-		Object.values(descriptor["$fields"]["InputEvents"]["$value"]).forEach(function(value) 
+	Object.values(descriptor["$fields"]["InputEvents"]["$value"]).forEach(function(value) 
+	{
+		AddSpecialNode("InputEvent", value["Id"]["$value"])
+	});
+	Object.values(descriptor["$fields"]["OutputEvents"]["$value"]).forEach(function(value)
 		{
-			AddSpecialNode("InputEvent", value["Id"]["$value"])
-		});
-		Object.values(descriptor["$fields"]["OutputEvents"]["$value"]).forEach(function(value)
-		 {
-			AddSpecialNode("OutputEvent", value["Id"]["$value"])
-		});
+		AddSpecialNode("OutputEvent", value["Id"]["$value"])
+	});
+
+	Object.values(descriptor["$fields"]["InputLinks"]["$value"]).forEach(function(value) 
+	{
+		AddSpecialNode("InputLink", value["Id"]["$value"])
+	});
+	Object.values(descriptor["$fields"]["OutputLinks"]["$value"]).forEach(function(value) 
+	{
+		AddSpecialNode("OutputLink", value["Id"]["$value"])
+	});
+
+
 	
-		Object.values(descriptor["$fields"]["InputLinks"]["$value"]).forEach(function(value) 
+	Object.values(descriptor["$fields"]["Fields"]["$value"]).forEach(function(value) 
+	{
+		var Node = AddSpecialNode("InputField", value["Id"]["$value"]);
+
+		if (value["Value"]["$value"] != null && 
+		Node.findInputSlot(value["Value"]["$value"]) == -1) 
 		{
-			AddSpecialNode("InputLink", value["Id"]["$value"])
-		});
-		Object.values(descriptor["$fields"]["OutputLinks"]["$value"]).forEach(function(value) 
-		{
-			AddSpecialNode("OutputLink", value["Id"]["$value"])
-		});
-	
-	
-		
-		Object.values(descriptor["$fields"]["Fields"]["$value"]).forEach(function(value) 
-		{
-			var Node = AddSpecialNode("InputField", value["Id"]["$value"]);
-	
-			if (value["Value"]["$value"] != null && 
-			Node.findInputSlot(value["Value"]["$value"]) == -1) 
+			Node.addInput(value["Value"]["$value"], LiteGraph.EVENT, 
 			{
-				Node.addInput(value["Value"]["$value"], LiteGraph.EVENT, 
-				{
-					locked: true
-				});
-				
-			}
-	
-		});*/
+				locked: true
+			});
+			
+		}
+
+	});
+	*/
 
 }
 
@@ -339,15 +388,15 @@ function AddSpecialNode(type, id, instanceGuid, partitionGuid) {
 
 		graph.add(node);
 
-		chartNode[chartNode.length] =
-		{
-			data:
-			{
-				id: type + id,
+
+		dagre_graph.setNode(type + id, 
+			{ 
+				width: node.size[0],
+				height: node.size[1],
+
 				special: true,
 				specialType: type
-			}
-		};
+			});
 	}
 	// Set twice for redundancy.
 	var node = graph.getNodeById(type + id);
@@ -573,41 +622,51 @@ function ProcessConnection(PC, variableName, type) {
 
 
 
-	if (type == "Event") {
-		if (descriptors[sourceInstanceGuid] != null) {
+	if (type == "Event") 
+	{
+		if (descriptors[sourceInstanceGuid] != null) 
+		{
 			if (graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]) == null)
 				sourceNode = AddSpecialNode("InputEvent", PC['Source' + variableName]["$value"]["Id"]["$value"], sourceInstanceGuid, sourcePartitionGuid);
 			else
 				sourceNode = graph.getNodeById("InputEvent" + PC['Source' + variableName]["$value"]["Id"]["$value"]);
 		}
 
-		if (descriptors[targetInstanceGuid] != null) {
+		if (descriptors[targetInstanceGuid] != null) 
+		{
 			if (graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]) == null)
 				targetNode = AddSpecialNode("OutputEvent", PC['Target' + variableName]["$value"]["Id"]["$value"], targetInstanceGuid, targetPartitionGuid);
 			else
 				targetNode = graph.getNodeById("OutputEvent" + PC['Target' + variableName]["$value"]["Id"]["$value"]);
 		}
 	}
-	else if (type == "Link") {
-		if (descriptors[sourceInstanceGuid] != null) {
+	else if (type == "Link") 
+	{
+		if (descriptors[sourceInstanceGuid] != null) 
+		{
 			if (graph.getNodeById("InputLink" + PC["Source" + variableName]["$value"]) == null)
 				sourceNode = AddSpecialNode("InputLink", PC["Source" + variableName]["$value"], sourceInstanceGuid, sourcePartitionGuid);
 			else
 				sourceNode = graph.getNodeById("InputLink" + PC['Source' + variableName]["$value"]);
 		}
 
-		if (descriptors[targetInstanceGuid] != null) {
+		if (descriptors[targetInstanceGuid] != null) 
+		{
 			if (graph.getNodeById("OutputLink" + PC["Target" + variableName]["$value"]) == null)
 				targetNode = AddSpecialNode("OutputLink", PC["Target" + variableName]["$value"], targetInstanceGuid, targetPartitionGuid);
 			else
 				targetNode = graph.getNodeById("OutputLink" + PC["Target" + variableName]["$value"]);
 		}
 	}
-	else if (type == "Property") {
-		if (descriptors[sourceInstanceGuid] != null) {
+	else if (type == "Property") 
+	{
+		if (descriptors[sourceInstanceGuid] != null) 
+		{
 			var s_NodeId = "InputField" + PC["Source" + variableName]["$value"];
 
-			if (graph.getNodeById(s_NodeId) == null) {
+			sourceNode = graph.getNodeById(s_NodeId);
+			if (sourceNode == null) 
+			{
 				sourceNode = AddSpecialNode("InputField", PC["Source" + variableName]["$value"], sourceInstanceGuid, sourcePartitionGuid);
 
 				Object.values(descriptors[sourceInstanceGuid]["$fields"]["Fields"]["$value"]).forEach(function (value) {
@@ -630,17 +689,19 @@ function ProcessConnection(PC, variableName, type) {
 
 				});
 			}
-			else
-				sourceNode = graph.getNodeById(s_NodeId);
 		}
 
-		if (descriptors[targetInstanceGuid] != null) {
+		if (descriptors[targetInstanceGuid] != null) 
+		{
 			var s_NodeId = "OutputField" + PC["Target" + variableName]["$value"];
-
-			if (graph.getNodeById(s_NodeId) == null) {
+			
+			targetNode = graph.getNodeById(s_NodeId);
+			if (targetNode == null) 
+			{
 				targetNode = AddSpecialNode("OutputField", PC["Target" + variableName]["$value"], targetInstanceGuid, targetPartitionGuid);
 
-				Object.values(descriptors[targetInstanceGuid]["$fields"]["Fields"]["$value"]).forEach(function (value) {
+				Object.values(descriptors[targetInstanceGuid]["$fields"]["Fields"]["$value"]).forEach(function (value) 
+				{
 
 					// updated json support
 					if (value["$value"] != null)
@@ -650,7 +711,8 @@ function ProcessConnection(PC, variableName, type) {
 						return;
 
 					if (value["Value"]["$value"] != null &&
-						targetNode.findInputSlot(value["Value"]["$value"]) == -1) {
+						targetNode.findInputSlot(value["Value"]["$value"]) == -1) 
+					{
 						targetNode.addInput(value["Value"]["$value"], LiteGraph.EVENT,
 							{
 								locked: true
@@ -659,8 +721,7 @@ function ProcessConnection(PC, variableName, type) {
 
 				});
 			}
-			else
-				targetNode = graph.getNodeById(s_NodeId);
+
 		}
 
 	}
@@ -704,16 +765,16 @@ function AddConnections(PC, source, target, variableName, type) {
 	var targetFieldSlot = target.findInputSlot(TargetHashString);
 
 
-	var mass = 1;
-	if (source.inputs != null) {
-		mass += source.inputs.length
-	}
-	if (source.outputs != null) {
-		mass += source.outputs.length
-	}
+	let s_Mass = 1;
+	if (source.inputs != null)
+		s_Mass += source.inputs.length
+	
+	if (source.outputs != null)
+		s_Mass += source.outputs.length
 
 
-	if (target.isInputConnected(targetFieldSlot)) {
+	if (target.isInputConnected(targetFieldSlot)) 
+	{
 		console.log("Tried to add multiple inputs." + TargetHashString)
 		var offset = 0;
 
@@ -732,14 +793,12 @@ function AddConnections(PC, source, target, variableName, type) {
 
 	source.connect(sourceFieldSlot, target, targetFieldSlot);
 
-	edges[edges.length] =
-	{
-		data:
-		{
-			source: source.id,
-			target: target.id
-		}
-	};
+
+	dagre_graph.setEdge(source.id, target.id, {
+		//weight: s_Mass,
+		name: SourceHashString + TargetHashString,
+	});
+
 
 
 }
@@ -866,12 +925,12 @@ function AddUIConnections(PC, source, target, sourcePort, targetPort) {
 
 	source.connect(sourceFieldSlot, target, targetFieldSlot);
 
-	edges[edges.length] = {
-		data: {
-			source: source.id,
-			target: target.id
-		}
-	};
+
+	dagre_graph.setEdge(source.id, target.id, {
+		//weight: s_Mass,
+		//name: sourcePort["$fields"]["Name"]["$value"] + targetPort["$fields"]["Name"]["$value"],
+	});
+
 
 
 }
@@ -880,18 +939,26 @@ function AddUIConnections(PC, source, target, sourcePort, targetPort) {
 function AddSubFields(node, instance) {
 	Object.keys(instance["$fields"]).forEach(function (key) {
 		if (key != 'Realm' && key != 'IndexInBlueprint' && key != 'IsEventConnectionTarget' && key != 'IsPropertyConnectionTarget') {
+			
+			let s_Value = null;
+			
 			if (key == "Blueprint" ||
 				key == "UnlockAsset" ||
 				key == "Sound" ||
 				key == "ImpulseResponse" ||
 				key == "Effect" ||
 				key == "Mesh" ||
-				key == "GraphAsset") {
-				if (instance["$fields"][key]["$value"] != null) {
-					var value = key + ": " + s_EbxManager.getPartitionPath(instance["$fields"][key]["$value"]["$partitionGuid"]);
+				key == "GraphAsset") 
+			{
+				if (instance["$fields"][key]["$value"] != null) 
+				{
+					let s_PartitionGuid = instance["$fields"][key]["$value"]["$partitionGuid"];
+
+					s_Value = key + ": " + s_EbxManager.getPartitionPath(s_PartitionGuid) ?? "*unknownRef* " + s_PartitionGuid.toUpperCase();
 				}
-				else {
-					var value = "nullRef";
+				else 
+				{
+					s_Value = "nullRef";
 				}
 			}
 
@@ -911,22 +978,34 @@ function AddSubFields(node, instance) {
 				key == "IntValue" ||
 				key == "FloatValue" ||
 				key == "BoolValue" ||
-				key == "StringValue") {
-				var value = key + ": " + instance["$fields"][key]["$value"];
+				key == "StringValue") 
+			{
+					s_Value = key + ": " + instance["$fields"][key]["$value"];
 			}
-			if (key == "EntryClass") {
-				var value = key + ": " + instance["$fields"][key]["$enumValue"];
+
+			if (key == "EntryClass") 
+			{
+				s_Value = key + ": " + instance["$fields"][key]["$enumValue"];
 			}
-			if (key == "DataSource") {
-				var value = key + ": " + s_EbxManager.getPartitionPath(instance["$fields"][key]["$value"]["DataCategory"]["$value"]["$partitionGuid"]);
-				node.addInput(value, LiteGraph.EVENT,
+
+			if (key == "DataSource") 
+			{
+				let s_DataCategoryPartitionId = instance["$fields"][key]["$value"]["DataCategory"]["$value"]["$partitionGuid"];
+
+				s_Value = key + ": " + s_EbxManager.getPartitionPath(s_DataCategoryPartitionId) ?? "*unknownRef* " + s_DataCategoryPartitionId.toUpperCase();;
+				
+				node.addInput(s_Value, LiteGraph.EVENT,
 					{
 						locked: true
 					});
-				var value = "DataKey: " + s_HashManager.GetHashResult(instance["$fields"][key]["$value"]["DataKey"]["$value"]);
+
+				s_Value = "DataKey: " + s_HashManager.GetHashResult(instance["$fields"][key]["$value"]["DataKey"]["$value"]);
 			}
-			if (value != null && node.findInputSlot(value) == -1) {
-				node.addInput(value, LiteGraph.EVENT,
+
+
+			if (s_Value != null && node.findInputSlot(s_Value) == -1) 
+			{
+				node.addInput(s_Value, LiteGraph.EVENT,
 					{
 						locked: true
 					});
@@ -962,42 +1041,19 @@ function AddNode(instance, partitionGuid) {
 
 
 
+		dagre_graph.setNode(instance["$guid"], 
+			{ 
+				width: node.size[0],
+				height: node.size[1],
+			});
 
 
-		chartNode[chartNode.length] =
-		{
-			data:
-			{
-				id: instance["$guid"],
-				special: false
-			}
-		};
 	}
 	// Set twice for redundancy.
 	return graph.getNodeById(instance["$guid"]);
 }
 
 
-function StringToColor(string) {
-	let fbHash = function(str) {
-		var hash = 5381;
-		for (var i = 0; i < str.length; i++) 
-		{
-			hash = ((hash << 5) + hash) ^ str.charCodeAt(i); /* hash * 33 + c */
-		}
-		return hash;
-	}
-		
-	let hashStringToColor = function(str, hashFunc) {
-		var hash = hashFunc(str);
-		var r = (hash & 0xFF0000) >> 16;
-		var g = (hash & 0x00FF00) >> 8;
-		var b = hash & 0x0000FF;
-		return "#" + ("0" + r.toString(16)).substr(-2) + ("0" + g.toString(16)).substr(-2) + ("0" + b.toString(16)).substr(-2);
-	}
-
-	return hashStringToColor(string, fbHash);
-}
 
 function CreateNode(type) {
 	switch (type) 
@@ -1050,38 +1106,96 @@ function FindNode(instanceGuid) {
 
 
 function ApplyCoordinates() {
-	cy = window.cy = cytoscape({
 
-		boxSelectionEnabled: false,
-		autounselectify: true,
-		elements: {
-			nodes: chartNode,
-			edges: edges
-		},
-		layout: {
-			name: 'dagre',
-			rankDir: "LR",
-			ranker: "longest-path",
-			padding: 50,
-			spacingFactor: 1.5,
 
-		}
+	for (let s_NodeId in nodes)
+	{
+
+		let s_GraphNode = nodes[s_NodeId];
+
+		let s_DagreNode = dagre_graph.node(s_NodeId);
+
+		s_DagreNode.width = s_GraphNode.size[0] + 20;
+		s_DagreNode.height = s_GraphNode.size[1] + 20;
+	}
+
+
+	if (dagre_graph.nodes().length == 0)
+		return;
+
+
+	dagre_graph.setGraph({
+		rankdir: "LR",
+		//ranker: "longest-path", // 1
+		//ranker: "network-simplex", // 2
+		//ranker: "tight-tree", // 3
+		
+		marginx: 50,
+		marginy: 50,
 	});
-	cy.nodes().forEach(function (node) {
-		if (node["_private"]["data"]["special"] != null &&
-			node["_private"]["data"]["special"] == true) {
-			if (node["_private"]["data"]["specialType"].startsWith("Input"))
-				node["_private"]["position"].x -= 100;
-			else
-				node["_private"]["position"].x += 100;
-		}
 
-		nodes[node["_private"]["data"]["id"]].pos = [node["_private"]["position"].x * 10, node["_private"]["position"].y];
+	dagre.layout(dagre_graph);
 
 
+	let s_Min = [99999999,99999999];
+	let s_Max = [-99999999,-99999999];
 
+	// calc min,max
+	dagre_graph.nodes().forEach(function(id) 
+	{
+		let s_NodeData = dagre_graph.node(id);
+		//console.log("Node " + id + ": " + JSON.stringify(dagre_graph.node(id)));
+		//nodes[id].pos = [s_NodeData.x*1.5, s_NodeData.y*1.5];
+		
+
+		let s_NodePos = [s_NodeData.x - s_NodeData.width/2.0,
+						 s_NodeData.y - s_NodeData.height/2.0];
+
+		let s_MaxCoords = [s_NodePos[0] + s_NodeData.width,
+						  s_NodePos[1] + s_NodeData.height];
+
+		
+		if (s_NodePos[0] < s_Min[0])
+			s_Min[0] = s_NodePos[0];
+
+		if (s_NodePos[1] < s_Min[1])
+			s_Min[1] = s_NodePos[1];
+		
+
+		
+		if (s_MaxCoords[0] > s_Max[0])
+			s_Max[0] = s_MaxCoords[0];
+
+		if (s_MaxCoords[1] > s_Max[1])
+			s_Max[1] = s_MaxCoords[1];
+	});
+
+	//if (dagre_graph.graph().width > s_Max[0])
+	//	s_Max[0] = dagre_graph.graph().width;
+	//if (dagre_graph.graph().height > s_Max[0])
+	//	s_Max[1] = dagre_graph.graph().height;
+
+
+	// why is it /4 ?
+	let s_GraphCenter = [(s_Min[0] + s_Max[0]) / 4.0,
+						 (s_Min[1] + s_Max[1]) / 4.0];
+
+	// set node and offset it to center
+	dagre_graph.nodes().forEach(function(id) 
+	{
+
+		let s_GraphNode = nodes[id];
+
+
+		let s_DagreNode = dagre_graph.node(id);
+
+		let s_NodeCenter = [s_DagreNode.width/2.0, s_DagreNode.height/2.0];
+
+		s_GraphNode.pos = [((s_DagreNode.x - s_GraphCenter[0]) - s_NodeCenter[0])*1.1 , 
+						   ((s_DagreNode.y - s_GraphCenter[1]) - s_NodeCenter[0])*1.5];
 
 	});
+	
 }
 
 //Init();

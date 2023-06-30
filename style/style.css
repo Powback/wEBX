@@ -173,7 +173,7 @@ h1 {
 .ref {
 	height: 14px;
 	overflow: hidden;
-	display: block;
+	display:inline-block;
 }
 
 .selected {

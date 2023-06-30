@@ -4,25 +4,41 @@ class IONode extends LiteGraph.LGraphNode {
 
         this.shape = LiteGraph.ROUND_SHAPE;
 		//this.title_text_color = "#6F6";
+
+
+		this.m_EnableSelectCallback = true;
 	}
 
 	onDrawBackground(ctx) {
 	}
 
-	onSelected() {
-		if (this.partitionGuid == null || this.instanceGuid == null) {
+	onSelected() 
+	{
+		if (this.m_EnableSelectCallback == false)
 			return;
-    }
-    
-		var instance = g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid);
 
-		if (instance == null) {
+
+		if (this.partitionGuid == null || 
+			this.instanceGuid == null)
 			return;
-		}
 
-		// Clear viewer and build descriptor
-		$("#PropertyViewer").html(instance);
-  }
+		s_MessageSystem.executeEventSync("OnObjectsSelected", {
+			"$partitionGuid": this.partitionGuid,
+			"$instanceGuids": [this.instanceGuid]
+		});
+	}
+
+	onDeselected()
+	{
+		if (this.m_EnableSelectCallback == false)
+			return;
+
+		s_MessageSystem.executeEventSync("OnObjectsSelected", {
+			"$partitionGuid": this.partitionGuid,
+			"$instanceGuids": []
+		});
+	}
+
 };
 
 

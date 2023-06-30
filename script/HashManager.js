@@ -99,6 +99,13 @@ class HashManager {
 
 	// No clue whats going here
 	RegisterInstance(instance) {
+
+
+		// loop trough fields and hash them then add them
+		// check https://github.com/yunding-network/fnv/blob/master/lib/hash32.js#L16
+		
+		
+		/*
 		if (instance["$fields"]["Id"] != null) {
 			this.m_KnownIDs[instance["$fields"]["Id"]["$value"]] = instance["$type"];
 		}
@@ -106,6 +113,7 @@ class HashManager {
         if (instance["$fields"]["PropertyConnections"] != null) {
 			this.m_KnownIDs[instance["$guid"]] = instance;
 		}
+		*/
     }
 }
 

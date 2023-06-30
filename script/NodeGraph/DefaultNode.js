@@ -4,24 +4,40 @@ class DefaultNode extends LiteGraph.LGraphNode {
 
 		this.title = "DefaultNode";
 		this.shape = LiteGraph.ROUND_SHAPE;
+
+
+		this.m_EnableSelectCallback = true;
 	}
 
 	onSelected() {
 		console.log(this.id);
 
 
+		if (this.m_EnableSelectCallback == false)
+			return;
+
+
 		if( this.partitionGuid == null ||
 			this.instanceGuid == null)
 			return;
 
-		var instance = g_EbxViewer.BuildInstance(this.partitionGuid, this.instanceGuid)
 
-		if (instance == null) {
+		s_MessageSystem.executeEventSync("OnObjectsSelected", {
+			"$partitionGuid": this.partitionGuid,
+			"$instanceGuids": [this.instanceGuid]
+		});
+
+	}
+
+	onDeselected()
+	{
+		if (this.m_EnableSelectCallback == false)
 			return;
-		}
 
-		$("#PropertyViewer").html("");
-		$("#PropertyViewer").append(instance);
+		s_MessageSystem.executeEventSync("OnObjectsSelected", {
+			"$partitionGuid": this.partitionGuid,
+			"$instanceGuids": []
+		});
 	}
 
 

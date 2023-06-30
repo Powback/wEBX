@@ -4,3 +4,5 @@
 */*.idea
 resources/*
 /Games/*
+/Hash/*
+/Tools/*

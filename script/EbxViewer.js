@@ -6,6 +6,8 @@ class EbxViewer {
 		this.m_TypeHandlers = {};
 
 		this.latestInstanceGuid = null;
+
+		this.m_CurrentBuildingPartition = null;
 	}
 
 	AddToCache(key, data) {
@@ -21,6 +23,7 @@ class EbxViewer {
 		if (s_Cached != null) {
 			console.log("Using cached ebx: [partition | instance]" + partitionGuid + " | " + instanceGuid);
 
+			/*
 			if (this.latestInstanceGuid != null && this.latestInstanceGuid == instanceGuid) {
 				console.log("Instance already displayed.")
 				return null;
@@ -29,6 +32,7 @@ class EbxViewer {
 			if (parentPartition == null) {
 				this.latestInstanceGuid = instanceGuid;
 			}
+			*/
 
 			return s_Cached;
 		}
@@ -41,15 +45,21 @@ class EbxViewer {
 		if (parentPartition == null) {
 			this.latestInstanceGuid = instanceGuid;
 		}
+
+		this.m_CurrentBuildingPartition = partitionGuid;
 	
 		let s_Content = "";
-		let s_IsLocalRef = partitionGuid == parentPartition // doesnt work because 'parentPartition' is primary instance guid instead of partition guid
+
+
+		let s_IsLocalRef = false;
+		if (parentPartition != null)
+			s_IsLocalRef = partitionGuid.toLowerCase() == parentPartition.toLowerCase(); // doesnt work because 'parentPartition' is primary instance guid instead of partition guid
 		
 		// Instance header (= type)
 		s_Content += 
 			`<h1 class="${s_IsLocalRef ? "localRef" : "remoteRef"}">
 				${s_Instance["$type"]}
-				${s_IsLocalRef ? `<partitionReference>${s_EbxManager.getPartitionPath(partitionGuid)}</partitionReference>` : ""}
+				${s_IsLocalRef ? `<partitionReference>${s_EbxManager.getPartitionPath(partitionGuid) ?? "*unknownRef* " + partitionGuid.toUpperCase()}</partitionReference>` : ""}
 			</h1>`
 
 		// Instance and partition guids
@@ -81,6 +91,8 @@ class EbxViewer {
 
 
 		this.AddToCache(partitionGuid + instanceGuid, s_Content);
+
+		this.m_CurrentBuildingPartition = null;
 
 		return s_Content;
 	}
@@ -216,9 +228,9 @@ class EbxViewer {
 
 		content += `<div class="ref" partitionGuid="${PartitionGuid}" 
 									instanceGuid="${InstanceGuid}" 
-									parentPartition="${currentPartition}">`;
+									parentPartition="${this.m_CurrentBuildingPartition}">`;
 
-		content += `<h1 class="${(PartitionGuid == currentPartition) ? "localRef" : "remoteRef"}">`;
+		content += `<h1 class="${(PartitionGuid.toLowerCase() == this.m_CurrentBuildingPartition.toLowerCase()) ? "localRef" : "remoteRef"}">`;
 
 
 
@@ -241,7 +253,7 @@ class EbxViewer {
 		else
 		{
 			content += `${instance["$type"]}
-				<partitionReference>${s_EbxManager.getPartitionPath(PartitionGuid)}</partitionReference>
+				<partitionReference>${s_EbxManager.getPartitionPath(PartitionGuid) ?? "*unknownRef* " + PartitionGuid.toUpperCase()}</partitionReference>
 				</h1>
 				
 				<div class="GuidReferences">

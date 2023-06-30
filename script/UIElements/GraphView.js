@@ -13,6 +13,11 @@ class GraphView {
     }
 
     UpdateSize() {
-        canvas.resize(this._container.width, this._container.height);
+        //this.m_GraphCanvas.resize(this._container.width, this._container.height);
+
+        if (canvas == null)
+            return;
+        
+        //canvas.resize(this._container.width, this._container.height);
     }
 }

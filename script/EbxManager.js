@@ -9,31 +9,47 @@ class EbxManager {
     }
 
     getPartitionPath(partitionGuid) {
-        return this.m_GuidDictionary[partitionGuid] ?? "*unknownRef* " + partitionGuid.toUpperCase();
+
+        let s_PartitionPath = this.m_GuidDictionary[partitionGuid];
+
+        if (s_PartitionPath == null) 
+            s_PartitionPath = this.m_GuidDictionary[partitionGuid.toLowerCase()];
+
+        if (s_PartitionPath == null) 
+            s_PartitionPath = this.m_GuidDictionary[partitionGuid.toUpperCase()];
+
+        //if (s_PartitionPath == null) 
+        //    return "*unknownRef* " + partitionGuid.toUpperCase()
+
+
+        return s_PartitionPath;
     }
 
-    findInstance(partitionGuid, instanceGuid, shouldLoad = true) {
+    findInstance(partitionGuid, instanceGuid, shouldLoad = true) 
+    {
         let partition = this.findPartition(partitionGuid, shouldLoad);
 
-        if (partition == null || partition["$instanceGuidMap"] == null) {
+        if (partition == null || 
+            partition["$instanceGuidMap"] == null)
             return null;
-        }
 
-        return partition["$instanceGuidMap"][instanceGuid];
+        return partition["$instanceGuidMap"][instanceGuid.toLowerCase()];
     }
 
-    findPartition(partitionGuid, shouldLoad = true) {
-        if (this.m_LoadedPartitions[partitionGuid] == null && shouldLoad) {
+    findPartition(partitionGuid, shouldLoad = true) 
+    {
+        if (this.m_LoadedPartitions[partitionGuid.toLowerCase()] == null && shouldLoad) 
             this.loadPartition(partitionGuid); 
-        }
 
         return this.m_LoadedPartitions[partitionGuid];
     }
 
-    loadPartition(partitionGuid, loadCallback = null, instanceGuid = null) {
-        let partitionPath = this.m_GuidDictionary[partitionGuid];
+    loadPartition(partitionGuid, loadCallback = null, instanceGuid = null) 
+    {
+        let partitionPath = this.getPartitionPath(partitionGuid);
 
-        if (partitionPath == null) {
+        if (partitionPath == null) 
+        {
             console.error("Could not find path for partition: " + partitionGuid)
             return false;
         }
@@ -42,41 +58,43 @@ class EbxManager {
     }
 
 
-    loadPartitionFromPath(path, loadCallback = null, failedCallback = null) {
+    loadPartitionFromPath(path, loadCallback = null, instanceGuid = null) 
+    {
         $.ajax({
             context: this,
             url: s_SettingsManager.getEbxDirectoryPath() + path,
             dataType: "json",
             async: false,
 
-            beforeSend: function(xhr) {
+            beforeSend: function(xhr) 
+            {
                 xhr.setRequestHeader('Accept', "text/html; charset=utf-8");
             },
 
-            success: function(partition) {
+            success: function(partition) 
+            {
                 // Build guid/instance map
                 let map = {}
                 $.each(partition['$instances'], function(index, instance) {
-                    map[instance['$guid']] = instance
-                })
-                partition['$instanceGuidMap'] = map
+                    map[instance['$guid'].toLowerCase()] = instance
+                });
+
+                partition['$instanceGuidMap'] = map;
 
                 // Save partition
-                this.m_LoadedPartitions[partition['$guid']] = partition;
+                this.m_LoadedPartitions[partition['$guid'].toLowerCase()] = partition;
                 
-                
-                if (loadCallback != null) {
-                    loadCallback(partition);
-                }     
+                if (loadCallback != null)
+                    loadCallback(partition, instanceGuid);
             },
 
-            error: function(xhr, status, error) {
-                console.log(xhr.responseText);
+            error: function(xhr, status, error) 
+            {
+                console.log(xhr.statusText);
                 console.log("Failed to load partition: "  + s_SettingsManager.getEbxDirectoryPath() + "/" + path)
                 
-                if (failedCallback != null) {
-                    failedCallback(path)
-                } 
+                //if (failedCallback != null)
+                //    failedCallback(path);
             },
         });
     }
@@ -96,6 +114,8 @@ class EbxManager {
             error: function(xhr, status, error) {
                 console.log(xhr);
                 console.log("Failed to load guidDictionary.json: " + s_SettingsManager.getEbxDirectoryPath()  + "guidDictionary.json")
+            
+                alert("Failed to load guidDictionary.json..\n Does this game exist on server?");
             }
         });
     }
