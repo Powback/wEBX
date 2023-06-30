@@ -41,7 +41,7 @@ class EbxManager {
         if (this.m_LoadedPartitions[partitionGuid.toLowerCase()] == null && shouldLoad) 
             this.loadPartition(partitionGuid); 
 
-        return this.m_LoadedPartitions[partitionGuid];
+        return this.m_LoadedPartitions[partitionGuid.toLowerCase()];
     }
 
     loadPartition(partitionGuid, loadCallback = null, instanceGuid = null) 
