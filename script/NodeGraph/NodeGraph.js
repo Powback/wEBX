@@ -106,7 +106,9 @@ class Graph {
 		canvas.resize($(window).width() - 10, $(window).height() - 10);
 
 
-		dagre_graph = new dagre.graphlib.Graph();
+		dagre_graph = new dagre.graphlib.Graph({
+			compound: true
+		});
 
 		
 
@@ -207,7 +209,9 @@ function Destroy() {
 	}
 
 
-	dagre_graph = new dagre.graphlib.Graph();
+	dagre_graph = new dagre.graphlib.Graph({
+		compound: true
+	});
 
 	// Default to assigning a new object as a label for each new edge.
 	dagre_graph.setDefaultEdgeLabel(function() { return {}; });
@@ -1108,6 +1112,8 @@ function FindNode(instanceGuid) {
 function ApplyCoordinates() {
 
 
+	let s_SpecialNodeMap = {};
+
 	for (let s_NodeId in nodes)
 	{
 
@@ -1117,6 +1123,34 @@ function ApplyCoordinates() {
 
 		s_DagreNode.width = s_GraphNode.size[0] + 20;
 		s_DagreNode.height = s_GraphNode.size[1] + 20;
+
+		// add special nodes to cluster
+		if ("specialType" in s_DagreNode)
+		{
+			var s_SpecialNodeType = s_DagreNode["specialType"];
+
+			if (!(s_SpecialNodeType in s_SpecialNodeMap))
+			{
+				dagre_graph.setNode(s_SpecialNodeType, {label: s_SpecialNodeType, clusterLabelPos: 'top'});
+
+
+				// add individial input and output grpups to a larger input and output group
+				if (s_SpecialNodeType.toLowerCase().startsWith("input"))
+				{
+					dagre_graph.setNode("Input", {label: "Input", clusterLabelPos: 'top'});
+
+					dagre_graph.setParent(s_SpecialNodeType, "Input");
+				}
+				else if (s_SpecialNodeType.toLowerCase().startsWith("output"))
+				{
+					dagre_graph.setNode("Output", {label: "Output", clusterLabelPos: 'top'});
+
+					dagre_graph.setParent(s_SpecialNodeType, "Output");
+				}
+			}
+
+			dagre_graph.setParent(s_NodeId, s_SpecialNodeType);
+		}
 	}
 
 
@@ -1185,6 +1219,9 @@ function ApplyCoordinates() {
 	{
 
 		let s_GraphNode = nodes[id];
+
+		if (s_GraphNode == null)
+			return;
 
 
 		let s_DagreNode = dagre_graph.node(id);
