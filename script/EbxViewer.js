@@ -117,6 +117,12 @@ class EbxViewer {
 			s_Content += `<field class="${isSubField ? "subField" : ""}">${field}</field>: `;
 		}
 		
+
+		let s_AdvancedContent = null;
+		if (instance["$type"] != null && g_AdvancedTypes[instance["$type"]] != null) 
+			s_AdvancedContent = this.HandleAdvanced(instance["$value"], instance["$type"]);
+
+		
 		if (instance["$array"] != null) {
 			s_Content += this.HandleArray(instance);
 
@@ -126,8 +132,8 @@ class EbxViewer {
 		} else if (instance["$type"] != null && g_SimpleTypes[instance["$type"]]) {
 			s_Content += this.HandleSimple(instance["$value"], instance["$type"]);
 
-		} else if (instance["$type"] != null && g_AdvancedTypes[instance["$type"]] != null) {
-			s_Content += this.HandleAdvanced(instance["$value"], instance["$type"]);
+		} else if (s_AdvancedContent != null) {
+			s_Content += s_AdvancedContent;
 
 		} else if (instance["$enum"] != null) {
 			s_Content += this.HandleEnum(instance["$enumValue"]);
@@ -353,11 +359,14 @@ class EbxViewer {
 		if (value)
 			content = `<value class="${type}">`;
 
+		let s_CustomContent = null;
 		if (g_AdvancedTypes[type] != null && g_AdvancedTypes[type] != true)
-			content += g_AdvancedTypes[type](value);
-		else
-			content += value;
+			s_CustomContent = g_AdvancedTypes[type](value);
+		
+		if (s_CustomContent == null)
+			return null;
 
+		content += s_CustomContent;
 		content += "</value>";
 		
 		return content;

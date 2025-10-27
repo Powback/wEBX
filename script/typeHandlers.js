@@ -218,7 +218,7 @@ function ParseVec4(value, raw = false)
 
 function ParseLinearTransform(value) {
 	if (value == null)
-		return "<nilValue>*null*</nilValue>";
+		return null;
 
 	// Fix for uppercase members
 
@@ -234,12 +234,16 @@ function ParseLinearTransform(value) {
 		s_Forward = value["forward"]["$value"];
 		s_Trans = value["trans"]["$value"];
 	}
-	else
+	else if(value["Right"] != null)
 	{
 		s_Right = value["Right"]["$value"];
 		s_Up = value["Up"]["$value"];
 		s_Forward = value["Forward"]["$value"];
 		s_Trans = value["Trans"]["$value"];
+	}
+	else
+	{
+		return null;
 	}
 
 	var content = '<ul type="2nd">' +
