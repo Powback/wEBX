@@ -6,27 +6,72 @@ function LinearTransformToThree(transformObj)
 
 
 	let m = new THREE.Matrix4();
-	m.elements = [
-		transformObj["$value"]["right"]["$value"]["x"]["$value"], 
-		transformObj["$value"]["right"]["$value"]["y"]["$value"], 
-		transformObj["$value"]["right"]["$value"]["z"]["$value"], 
-		0.0,
+	
+	let s_Transform = [];
 
-		transformObj["$value"]["up"]["$value"]["x"]["$value"], 
-		transformObj["$value"]["up"]["$value"]["y"]["$value"], 
-		transformObj["$value"]["up"]["$value"]["z"]["$value"], 
-		0.0,
+	function BuildTransformElement(obj, name, w_val=0.0) {
+		const dir = obj?.$value?.[name] ?? obj?.$value?.[name.toLowerCase()];
+		if (dir?.$value) {
+			const v = dir.$value;
+			s_Transform.push(v.x.$value, v.y.$value, v.z.$value, w_val);
+		}
+	}
+	BuildTransformElement(transformObj, "Right");
+	BuildTransformElement(transformObj, "Up");
+	BuildTransformElement(transformObj, "Forward");
+	BuildTransformElement(transformObj, "Trans", 1.0);
+	
 
-		transformObj["$value"]["forward"]["$value"]["x"]["$value"], 
-		transformObj["$value"]["forward"]["$value"]["y"]["$value"], 
-		transformObj["$value"]["forward"]["$value"]["z"]["$value"], 
-		0.0,
+	m.elements = s_Transform;
+	
+	// if (transformObj["$value"]["Right"] != null)
+	// {
+	// 	m.elements = [
+	// 		transformObj["$value"]["Right"]["$value"]["x"]["$value"], 
+	// 		transformObj["$value"]["Right"]["$value"]["y"]["$value"], 
+	// 		transformObj["$value"]["Right"]["$value"]["z"]["$value"], 
+	// 		0.0,
 
-		transformObj["$value"]["trans"]["$value"]["x"]["$value"], 
-		transformObj["$value"]["trans"]["$value"]["y"]["$value"], 
-		transformObj["$value"]["trans"]["$value"]["z"]["$value"], 
-		1.0
-	];
+	// 		transformObj["$value"]["Up"]["$value"]["x"]["$value"], 
+	// 		transformObj["$value"]["Up"]["$value"]["y"]["$value"], 
+	// 		transformObj["$value"]["Up"]["$value"]["z"]["$value"], 
+	// 		0.0,
+
+	// 		transformObj["$value"]["Forward"]["$value"]["x"]["$value"], 
+	// 		transformObj["$value"]["Forward"]["$value"]["y"]["$value"], 
+	// 		transformObj["$value"]["Forward"]["$value"]["z"]["$value"], 
+	// 		0.0,
+
+	// 		transformObj["$value"]["Trans"]["$value"]["x"]["$value"], 
+	// 		transformObj["$value"]["Trans"]["$value"]["y"]["$value"], 
+	// 		transformObj["$value"]["Trans"]["$value"]["z"]["$value"], 
+	// 		1.0
+	// 	]
+	// }
+	// else
+	// {
+	// 	m.elements = [
+	// 		transformObj["$value"]["right"]["$value"]["x"]["$value"], 
+	// 		transformObj["$value"]["right"]["$value"]["y"]["$value"], 
+	// 		transformObj["$value"]["right"]["$value"]["z"]["$value"], 
+	// 		0.0,
+
+	// 		transformObj["$value"]["up"]["$value"]["x"]["$value"], 
+	// 		transformObj["$value"]["up"]["$value"]["y"]["$value"], 
+	// 		transformObj["$value"]["up"]["$value"]["z"]["$value"], 
+	// 		0.0,
+
+	// 		transformObj["$value"]["forward"]["$value"]["x"]["$value"], 
+	// 		transformObj["$value"]["forward"]["$value"]["y"]["$value"], 
+	// 		transformObj["$value"]["forward"]["$value"]["z"]["$value"], 
+	// 		0.0,
+
+	// 		transformObj["$value"]["trans"]["$value"]["x"]["$value"], 
+	// 		transformObj["$value"]["trans"]["$value"]["y"]["$value"], 
+	// 		transformObj["$value"]["trans"]["$value"]["z"]["$value"], 
+	// 		1.0
+	// 	];
+	// }
 	
 
 
@@ -36,11 +81,13 @@ function LinearTransformToThree(transformObj)
 
 function LinearTransformToThreePos(transformObj)
 {
-	let v = new THREE.Vector3(transformObj["$value"]["trans"]["$value"]["x"]["$value"], 
-	transformObj["$value"]["trans"]["$value"]["y"]["$value"], 
-	transformObj["$value"]["trans"]["$value"]["z"]["$value"]);
 
-	return v;
+	var s_Vec = transformObj?.$value?.Trans?.$value ?? transformObj?.$value?.trans?.$value;
+
+	return new THREE.Vector3(
+		s_Vec["x"]["$value"], 
+		s_Vec["y"]["$value"], 
+		s_Vec["z"]["$value"])
 }
 
 

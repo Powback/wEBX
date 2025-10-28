@@ -180,7 +180,7 @@ function ParseVec2(value, raw = false)
 
 function ParseVec3(value, raw = false)
 {
-	if (value == null)
+	if (value?.x == null)
 		return "<nilValue>*null*</nilValue>";
 
 
@@ -218,33 +218,14 @@ function ParseVec4(value, raw = false)
 
 function ParseLinearTransform(value) {
 	if (value == null)
-		return null;
+		return "<nilValue>*null*</nilValue>";
 
 	// Fix for uppercase members
 
-	let s_Right = null;
-	let s_Up = null;
-	let s_Forward = null;
-	let s_Trans = null;
-
-	if (value["right"] != null)
-	{
-		s_Right = value["right"]["$value"];
-		s_Up = value["up"]["$value"];
-		s_Forward = value["forward"]["$value"];
-		s_Trans = value["trans"]["$value"];
-	}
-	else if(value["Right"] != null)
-	{
-		s_Right = value["Right"]["$value"];
-		s_Up = value["Up"]["$value"];
-		s_Forward = value["Forward"]["$value"];
-		s_Trans = value["Trans"]["$value"];
-	}
-	else
-	{
-		return null;
-	}
+	let s_Right = value?.Right?.$value ?? value?.right?.$value;
+	let s_Up = value?.Up?.$value ?? value?.up?.$value;
+	let s_Forward = value?.Forward?.$value ?? value?.forward?.$value;
+	let s_Trans = value?.Trans?.$value ?? value?.trans?.$value;
 
 	var content = '<ul type="2nd">' +
 		'<value class="LinearTransform">' +

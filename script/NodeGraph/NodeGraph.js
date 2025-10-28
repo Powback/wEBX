@@ -598,15 +598,16 @@ function ProcessConnection(PC, variableName, type) {
 	if (PC["$value"] != null)
 		PC = PC["$value"];
 
-	if (PC["Source"]["$value"] == null ||
+	let s_Source = PC.Source?.$value ?? PC.source?.$value;
+	if (s_Source == null ||
 		PC["Target"]["$value"] == null) {
-		console.log("Source or target value null: " + PC["Source"]["$value"] + " | " + PC["Target"]["$value"]);
+		console.log("Source or target value null: " + s_Source + " | " + PC["Target"]["$value"]);
 		return;
 	}
 
 
-	var sourcePartitionGuid = PC["Source"]["$value"]["$partitionGuid"]
-	var sourceInstanceGuid = PC["Source"]["$value"]["$instanceGuid"]
+	var sourcePartitionGuid = s_Source["$partitionGuid"]
+	var sourceInstanceGuid = s_Source["$instanceGuid"]
 
 	var targetPartitionGuid = PC["Target"]["$value"]["$partitionGuid"]
 	var targetInstanceGuid = PC["Target"]["$value"]["$instanceGuid"]
@@ -682,8 +683,10 @@ function ProcessConnection(PC, variableName, type) {
 					if (value["Id"]["$value"] != PC["Source" + variableName]["$value"])
 						return;
 
-					if (value["Value"]["$value"] != null &&
-						sourceNode.findInputSlot(value["Value"]["$value"]) == -1) {
+					var s_InputValue = value?.Value?.$value;
+					if (s_InputValue != null &&
+						targetNode.findInputSlot(s_InputValue) == -1) 
+					{
 						sourceNode.addInput(value["Value"]["$value"], LiteGraph.EVENT,
 							{
 								locked: true
@@ -714,10 +717,11 @@ function ProcessConnection(PC, variableName, type) {
 					if (value["Id"]["$value"] != PC["Target" + variableName]["$value"])
 						return;
 
-					if (value["Value"]["$value"] != null &&
-						targetNode.findInputSlot(value["Value"]["$value"]) == -1) 
+					var s_InputValue = value?.Value?.$value;
+					if (s_InputValue != null &&
+						targetNode.findInputSlot(s_InputValue) == -1) 
 					{
-						targetNode.addInput(value["Value"]["$value"], LiteGraph.EVENT,
+						targetNode.addInput(s_InputValue, LiteGraph.EVENT,
 							{
 								locked: true
 							});
@@ -823,7 +827,8 @@ function AddFields(PC, source, target, variableName, type) {
 
 
 
-	var sourceInstance = s_EbxManager.findInstance(PC["Source"]["$value"]["$partitionGuid"], PC["Source"]["$value"]["$instanceGuid"]);
+	let s_Source = PC.Source?.$value ?? PC.source?.$value;
+	var sourceInstance = s_EbxManager.findInstance(s_Source["$partitionGuid"], s_Source["$instanceGuid"]);
 	var targetInstance = s_EbxManager.findInstance(PC["Target"]["$value"]["$partitionGuid"], PC["Target"]["$value"]["$instanceGuid"]);
 
 	if (sourceInstance == null ||
