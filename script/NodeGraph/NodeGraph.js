@@ -685,7 +685,7 @@ function ProcessConnection(PC, variableName, type) {
 
 					var s_InputValue = value?.Value?.$value;
 					if (s_InputValue != null &&
-						targetNode.findInputSlot(s_InputValue) == -1) 
+						sourceNode.findInputSlot(s_InputValue) == -1) 
 					{
 						sourceNode.addInput(value["Value"]["$value"], LiteGraph.EVENT,
 							{
