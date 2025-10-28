@@ -164,6 +164,58 @@ function CreatePageLayout() {
 }
 
 
+function ToolbarUpdateOptions(p_Options)
+{
+	if (!p_Options.includes(s_SettingsManager.getGame()))
+		p_Options.push(s_SettingsManager.getGame())
+	
+	let s_GameSelect = document.getElementById("game-select");
+	s_GameSelect.innerHTML = "";
+
+	// Add dropdown options
+	for (let s_Key in p_Options) {
+		let s_Value = p_Options[s_Key];
+
+		let s_Option = document.createElement("option");
+
+		s_Option.innerText = s_Value;
+		s_Option.value = s_Value;
+
+		s_GameSelect.appendChild(s_Option);
+	}
+
+	// Set active game
+	s_GameSelect.value = s_SettingsManager.getGame();
+}
+function ToolbarLoadGames()
+{
+
+	$.ajax({
+		context: this,
+		url: s_SettingsManager.getGameDirectoryPath() + "games.json",
+		dataType: "json",
+		async: true,
+		beforeSend: function(xhr) 
+		{
+			xhr.setRequestHeader('Accept', "text/html; charset=utf-8");
+		},
+
+		success: function(options) 
+		{
+			ToolbarUpdateOptions(options)
+		},
+
+		error: function(xhr, status, error) 
+		{
+			console.log(xhr.statusText);
+			console.log("Failed to load games list" + s_SettingsManager.getGameDirectoryPath() + "games.json")
+			
+			//if (failedCallback != null)
+			//    failedCallback(path);
+		},
+	});
+}
+
 function CreateToolbar() {
 	let s_Toolbar = document.getElementById("toolbar");
 	if (s_Toolbar == null) {
@@ -180,29 +232,16 @@ function CreateToolbar() {
 		s_EbxManager.loadGuidDictionary();
 	};
 
-	// TODO: Get options from server?
+	// if (s_GameSelect.innerHTML == "")
 	let s_Options = [
 		"Venice", 
 		"Warsaw", 
 		"Tunguska",
 		"Casablanca",
-		"Jupiter-debug",
 	];
 
-	// Add dropdown options
-	for (let s_Key in s_Options) {
-		let s_Value = s_Options[s_Key];
-
-		let s_Option = document.createElement("option");
-
-		s_Option.innerText = s_Value;
-		s_Option.value = s_Value;
-
-		s_GameSelect.appendChild(s_Option);
-	}
-
-	// Set active game
-	s_GameSelect.value = s_SettingsManager.getGame();
+	ToolbarUpdateOptions(s_Options);
+	ToolbarLoadGames();
 }
 
 function CreateBookmarks() {
@@ -270,8 +309,17 @@ function LoadEbxFromHash() {
 	if (hash.length == 0)
 		return;
 	
+	let s_SettingsEnt = hash.split('=', 2);
+	if (s_SettingsEnt.length == 2)
+	{
+		s_SettingsManager.setSetting(s_SettingsEnt[0], s_SettingsEnt[1]);
+		s_SettingsManager.saveSettings();
+		location.hash = "#";
+		return;
+	}
+	
 	// Hash is guid pair
-	var params = hash.split('&');
+	var params = hash.split('&', 2);
 	if (params.length == 2)	{
 		s_EbxManager.loadPartition(params[0], LoadCallback, params[1]);
 		return;

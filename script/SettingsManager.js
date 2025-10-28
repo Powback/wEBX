@@ -10,6 +10,14 @@ class SettingsManager {
 
         this.saveSettings();
     }
+	
+
+	setSetting(key, value) {
+		let s_Old = this.m_Settings[key];
+		this.m_Settings[key] = value;
+		console.log(this.m_Settings, key, value);
+		return s_Old;
+	}
 
     saveSettings() {
         localStorage.setItem('webx-settings', JSON.stringify(this.m_Settings));
