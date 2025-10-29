@@ -207,8 +207,13 @@ function ParseVec4(value, raw = false)
 	var content = "";
 	if (raw == true)
 		content += "Vec4(";
+	
+	let s_X = value.x?.$value ?? value.X?.$value;
+	let s_Y = value.y?.$value ?? value.Y?.$value;
+	let s_Z = value.z?.$value ?? value.Z?.$value;
+	let s_W = value.w?.$value ?? value.W?.$value;
 
-	content += value["x"]["$value"] + ", " + value["y"]["$value"] + ", " + value["z"]["$value"] + ", " + value["w"]["$value"];
+	content += s_X + ", " + s_Y + ", " + s_Z + ", " + s_W;
 
 	if (raw == true)
 		content += ")";
