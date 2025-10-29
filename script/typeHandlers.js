@@ -162,7 +162,7 @@ function Utf16ArrayToString(inputString) {
 
 function ParseVec2(value, raw = false)
 {
-	if (value == null)
+	if (value?.x == null)
 		return "<nilValue>*null*</nilValue>";
 
 	var content = "";
@@ -200,7 +200,7 @@ function ParseVec3(value, raw = false)
 
 function ParseVec4(value, raw = false)
 {
-	if (value == null)
+	if (value?.x == null)
 		return "<nilValue>*null*</nilValue>";
 
 
