@@ -4,5 +4,6 @@
 */*.idea
 resources/*
 /Games/*
+!/Games/games.json
 /Hash/*
 /Tools/*
