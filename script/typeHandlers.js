@@ -180,8 +180,8 @@ function ParseVec2(value, raw = false)
 
 function ParseVec3(value, raw = false)
 {
-	if (value?.x == null)
-		return "<nilValue>*null*</nilValue>";
+	// if (value?.x == null)
+	// 	return "<nilValue>*null*</nilValue>";
 
 
 	var content = "";
@@ -190,7 +190,11 @@ function ParseVec3(value, raw = false)
 		content += "Vec3(";
 
 
-	content += value["x"]["$value"] + ", " + value["y"]["$value"] + ", " + value["z"]["$value"];
+	let s_X = value.x?.$value ?? value.X?.$value;
+	let s_Y = value.y?.$value ?? value.Y?.$value;
+	let s_Z = value.z?.$value ?? value.Z?.$value;
+
+	content += s_X + ", " + s_Y + ", " + s_Z;
 
 	if (raw == true)
 		content += ")";
@@ -200,8 +204,8 @@ function ParseVec3(value, raw = false)
 
 function ParseVec4(value, raw = false)
 {
-	if (value?.x == null)
-		return "<nilValue>*null*</nilValue>";
+	// if (value?.x == null)
+	// 	return "<nilValue>*null*</nilValue>";
 
 
 	var content = "";

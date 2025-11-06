@@ -13,7 +13,12 @@ function LinearTransformToThree(transformObj)
 		const dir = obj?.$value?.[name] ?? obj?.$value?.[name.toLowerCase()];
 		if (dir?.$value) {
 			const v = dir.$value;
-			s_Transform.push(v.x.$value, v.y.$value, v.z.$value, w_val);
+			s_Transform.push(
+				v.x?.$value ?? v.X?.$value,
+				v.y?.$value ?? v.Y?.$value,
+				v.z?.$value ?? v.Z?.$value,
+				w_val
+			);
 		}
 	}
 	BuildTransformElement(transformObj, "Right");
@@ -85,9 +90,11 @@ function LinearTransformToThreePos(transformObj)
 	var s_Vec = transformObj?.$value?.Trans?.$value ?? transformObj?.$value?.trans?.$value;
 
 	return new THREE.Vector3(
-		s_Vec["x"]["$value"], 
-		s_Vec["y"]["$value"], 
-		s_Vec["z"]["$value"])
+
+		s_Vec.x?.$value ?? s_Vec.X?.$value,
+		s_Vec.y?.$value ?? s_Vec.Y?.$value,
+		s_Vec.z?.$value ?? s_Vec.Z?.$value,
+	);
 }
 
 
