@@ -162,7 +162,7 @@ function Utf16ArrayToString(inputString) {
 
 function ParseVec2(value, raw = false)
 {
-	if (value?.x == null)
+	if (value == null)
 		return "<nilValue>*null*</nilValue>";
 
 	var content = "";
@@ -180,8 +180,8 @@ function ParseVec2(value, raw = false)
 
 function ParseVec3(value, raw = false)
 {
-	// if (value?.x == null)
-	// 	return "<nilValue>*null*</nilValue>";
+	if (value == null)
+		return "<nilValue>*null*</nilValue>";
 
 
 	var content = "";
@@ -204,8 +204,8 @@ function ParseVec3(value, raw = false)
 
 function ParseVec4(value, raw = false)
 {
-	// if (value?.x == null)
-	// 	return "<nilValue>*null*</nilValue>";
+	if (value == null)
+		return "<nilValue>*null*</nilValue>";
 
 
 	var content = "";
