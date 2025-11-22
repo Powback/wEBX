@@ -170,7 +170,10 @@ function ParseVec2(value, raw = false)
 	if (raw == true)
 		content += "Vec3(";
 
-	content += value["x"]["$value"] + ", " + value["y"]["$value"];
+	let s_X = value.x?.$value ?? value.X?.$value;
+	let s_Y = value.y?.$value ?? value.Y?.$value;
+
+	content += s_X + ", " + s_Y;
 
 	if (raw == true)
 		content += ")";
